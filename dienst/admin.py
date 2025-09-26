@@ -1,8 +1,115 @@
-# dienst/admin.py
-from django.contrib import admin
-from .models import Dienst, DienstFahrzeug, DienstAnhaenger, DienstTeilnahme
+from django.contrib import admin, messages
+from django.db import transaction
+from django.db.models import Max
+from django.utils import timezone
+from django.urls import path, reverse
+from django.utils.html import format_html
+from django.http import HttpResponse, HttpResponseRedirect
+from django.shortcuts import get_object_or_404
+from django.template.loader import render_to_string
+
+from weasyprint import HTML  # für PDF
+from core.models import MailEmpfaenger
+
+from .models import (
+    Dienst,
+    DienstFahrzeug,
+    DienstAbrollbehaelter,
+    DienstAnhaenger,
+    DienstTeilnahme,
+)
+
+# Inlines
+class DienstFahrzeugInline(admin.TabularInline):
+    model = DienstFahrzeug
+    extra = 0
+    fields = ("fahrzeug", "kilometer", "stunden")
+    # optional, wenn du viele Fahrzeuge hast: Autocomplete
+    autocomplete_fields = ("fahrzeug",)
+
+class DienstAbrollInline(admin.TabularInline):
+    model = DienstAbrollbehaelter
+    extra = 0
+    fields = ("abrollbehaelter", "erforderlich")
+    autocomplete_fields = ("abrollbehaelter",)
+
+class DienstAnhaengerInline(admin.TabularInline):
+    model = DienstAnhaenger
+    extra = 0
+    fields = ("anhaenger", "kilometer", "stunden")
+    autocomplete_fields = ("anhaenger",)
+
+class DienstTeilnahmeInline(admin.TabularInline):
+    model = DienstTeilnahme
+    extra = 0
+    fields = ("mitglied", "fahrzeug_funktion", "agt_minuten")
+    autocomplete_fields = ("mitglied",)
+
+def _render_html_to_pdf_bytes(html: str, base_url=None) -> bytes:
+    return HTML(string=html, base_url=base_url).write_pdf()
+
+def _send_mail_with_pdf(subject: str, body_text: str, pdf_bytes: bytes, filename: str) -> int:
+    recipients = list(MailEmpfaenger.objects.filter(aktiv=True).values_list("email", flat=True))
+    if not recipients:
+        return 0
+    from django.core.mail import EmailMessage
+    msg = EmailMessage(subject=subject, body=body_text, to=recipients)
+    msg.attach(filename, pdf_bytes, "application/pdf")
+    return msg.send(fail_silently=True)
 
 @admin.register(Dienst)
 class DienstAdmin(admin.ModelAdmin):
-    list_display = ("nummer_formatiert", "titel", "start_dt", "ende_dt")
-    search_fields = ("year", "seq", "titel")
+    date_hierarchy = "start_dt"
+    list_display = ("nummer_formatiert", "titel", "start_dt", "ende_dt", "obj_actions")
+    search_fields = ("titel",)
+    list_filter = ("year",)
+    readonly_fields = ("year", "seq", "nummer_formatiert", "dauer_stunden")
+
+    fieldsets = (
+        ("Allgemein", {"fields": ("titel", "start_dt", "ende_dt", "beschreibung")}),
+        ("Nummer/Meta", {
+            "fields": ("year", "seq", "nummer_formatiert", "dauer_stunden"),
+            "classes": ("collapse",),
+        }),
+    )
+
+    inlines = [DienstFahrzeugInline, DienstAbrollInline, DienstAnhaengerInline, DienstTeilnahmeInline]
+
+    # Objekt-Tools Spalte
+    def obj_actions(self, obj):
+        return format_html(
+            '<a class="button" href="{}" target="_blank">PDF</a>&nbsp;'
+            '<a class="button" href="{}">Mail erneut</a>',
+            reverse('admin:dienst_dienst_pdf', args=[obj.pk]),
+            reverse('admin:dienst_dienst_resend', args=[obj.pk]),
+        )
+    obj_actions.short_description = "Aktionen"
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom = [
+            path("<int:pk>/pdf/", self.admin_site.admin_view(self.view_pdf), name="dienst_dienst_pdf"),
+            path("<int:pk>/resend/", self.admin_site.admin_view(self.resend_mail), name="dienst_dienst_resend"),
+        ]
+        return custom + urls
+
+    def view_pdf(self, request, pk: int, *args, **kwargs):
+        obj = get_object_or_404(Dienst, pk=pk)
+        html = render_to_string("dienst/pdf.html", {"obj": obj})
+        pdf = _render_html_to_pdf_bytes(html, base_url=request.build_absolute_uri("/"))
+        resp = HttpResponse(pdf, content_type="application/pdf")
+        resp["Content-Disposition"] = f'inline; filename="Dienst_{obj.nummer_formatiert}.pdf"'
+        return resp
+
+    def resend_mail(self, request, pk: int, *args, **kwargs):
+        obj = get_object_or_404(Dienst, pk=pk)
+        html = render_to_string("dienst/pdf.html", {"obj": obj})
+        pdf = _render_html_to_pdf_bytes(html, base_url=request.build_absolute_uri("/"))
+        sent = _send_mail_with_pdf(
+            "Neue Dienstliste eingegangen",
+            "Automatische Nachricht: Eine neue Dienstliste wurde erfasst.",
+            pdf,
+            f"Dienst_{obj.nummer_formatiert}.pdf",
+        )
+        messages.success(request, f"E-Mail für Dienst {obj.nummer_formatiert} erneut versendet ({sent} Empfänger).")
+        return HttpResponseRedirect(reverse("admin:dienst_dienst_change", args=[obj.pk]))
