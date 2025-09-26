@@ -64,9 +64,11 @@ class DienstForm(forms.ModelForm):
         model = Dienst
         fields = ["titel", "start_dt", "ende_dt", "beschreibung", "abrollbehaelter"]
         widgets = {
-            "start_dt": forms.DateTimeInput(attrs={"type": "datetime-local"}),
-            "ende_dt": forms.DateTimeInput(attrs={"type": "datetime-local"}),
-            "abrollbehaelter": forms.CheckboxSelectMultiple,  # neu: Checkboxen statt Multiselect
+            "titel": forms.TextInput(attrs={"class": "mt-1 w-full border rounded px-3 py-2"}),
+            "start_dt": forms.DateTimeInput(attrs={"type": "datetime-local", "class": "mt-1 w-full border rounded px-3 py-2"}),
+            "ende_dt": forms.DateTimeInput(attrs={"type": "datetime-local", "class": "mt-1 w-full border rounded px-3 py-2"}),
+            "beschreibung": forms.Textarea(attrs={"class": "mt-1 w-full border rounded px-3 py-2", "rows": 4}),
+            "abrollbehaelter": forms.CheckboxSelectMultiple(),  # Checkboxen statt Multi-Select
         }
 
 

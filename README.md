@@ -13,6 +13,8 @@ sudo apt-get install -y libcairo2 libpango-1.0-0 libgdk-pixbuf2.0-0 libffi-dev s
 pip install weasyprint
 
 python manage.py createsuperuser
+
+python manage.py makemigrations
 ```
 
 # Übersicht der Ordnerstruktur

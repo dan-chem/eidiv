@@ -12,7 +12,7 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div>
         <label class="block text-sm font-medium">Titel</label>
-        {{ form.titel|as_widget:{"class":"mt-1 w-full border rounded px-3 py-2"} }}
+        {{ form.titel }}
       </div>
       <div>
         <label class="block text-sm font-medium">Abrollbehälter</label>
@@ -21,15 +21,15 @@
       </div>
       <div>
         <label class="block text-sm font-medium">Beginn</label>
-        {{ form.start_dt|as_widget:{"class":"mt-1 w-full border rounded px-3 py-2"} }}
+        {{ form.start_dt }}
       </div>
       <div>
         <label class="block text-sm font-medium">Ende</label>
-        {{ form.ende_dt|as_widget:{"class":"mt-1 w-full border rounded px-3 py-2"} }}
+        {{ form.ende_dt }}
       </div>
       <div class="md:col-span-2">
         <label class="block text-sm font-medium">Beschreibung</label>
-        {{ form.beschreibung|as_widget:{"class":"mt-1 w-full border rounded px-3 py-2"} }}
+        {{ form.beschreibung }}
       </div>
     </div>
     {% if form.non_field_errors %}<p class="text-red-600 mt-2">{{ form.non_field_errors }}</p>{% endif %}
@@ -68,8 +68,8 @@
             hx-get="{% url 'dienst_htmx_add_fahrzeug' %}"
             hx-target="#fv_tbody"
             hx-swap="beforeend"
-            data-formset-prefix="dienstfahrzeug_set">
-      + Zeile hinzufügen
+            data-formset-prefix="fv">
+    + Zeile hinzufügen
     </button>
   </section>
 
@@ -106,8 +106,8 @@
             hx-get="{% url 'dienst_htmx_add_anhaenger' %}"
             hx-target="#an_tbody"
             hx-swap="beforeend"
-            data-formset-prefix="dienstanhaenger_set">
-      + Zeile hinzufügen
+            data-formset-prefix="an">
+    + Zeile hinzufügen
     </button>
   </section>
 
@@ -144,8 +144,8 @@
             hx-get="{% url 'dienst_htmx_add_teilnahme' %}"
             hx-target="#tn_tbody"
             hx-swap="beforeend"
-            data-formset-prefix="dienstteilnahme_set">
-      + Zeile hinzufügen
+            data-formset-prefix="tn">
+    + Zeile hinzufügen
     </button>
   </section>
 
