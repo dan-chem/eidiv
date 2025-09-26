@@ -1,7 +1,20 @@
 <tr class="border-b">
-  <td class="py-1">{{ form.entnahmestelle }}</td>
-  <td class="py-1">{{ form.menge }}</td>
   <td class="py-1">
+    {{ form.entnahmestelle }}
+    {% if form.entnahmestelle.errors %}
+      <div class="text-red-600 text-xs">{{ form.entnahmestelle.errors|join:", " }}</div>
+    {% endif %}
+  </td>
+  <td class="py-1" style="width:120px;">
+    {{ form.menge }}
+    {% if form.menge.errors %}
+      <div class="text-red-600 text-xs">{{ form.menge.errors|join:", " }}</div>
+    {% endif %}
+  </td>
+  <td class="py-1" style="width:100px;">
+    {% if form.non_field_errors %}
+      <div class="text-red-600 text-xs">{{ form.non_field_errors|join:", " }}</div>
+    {% endif %}
     {% if form.instance.pk %}{{ form.DELETE }} löschen{% endif %}
     {{ form.id }}
   </td>

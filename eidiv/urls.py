@@ -21,6 +21,7 @@ from core.views import index # einfache Startseite
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', index, name='index'),
+    path('api/mitglied/<int:pk>/agt', api_mitglied_agt, name='api_mitglied_agt'),
     path('einsatz/', include('einsatz.urls')),
     path('dienst/', include('dienst.urls')),
 ]

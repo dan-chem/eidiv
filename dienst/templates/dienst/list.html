@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="text-xl font-semibold mb-4">Dienste</h1>
+
+<form method="get" class="mb-4 flex gap-2 items-end">
+  <div>
+    <label class="block text-sm">Jahr</label>
+    <input type="number" name="year" value="{{ year }}" class="border rounded px-2 py-1 w-28">
+  </div>
+  <div>
+    <label class="block text-sm">Suche</label>
+    <input type="text" name="q" value="{{ q }}" placeholder="Titel…" class="border rounded px-2 py-1 w-72">
+  </div>
+  <button class="px-3 py-2 border rounded">Filtern</button>
+  <a href="{% url 'dienst_neu' %}" class="ml-auto px-3 py-2 bg-blue-600 text-white rounded">Neuen Dienst erfassen</a>
+</form>
+
+<table class="w-full text-sm bg-white rounded shadow">
+  <thead>
+    <tr class="text-left border-b">
+      <th class="py-2 px-2">Nr.</th>
+      <th class="py-2 px-2">Titel</th>
+      <th class="py-2 px-2">Beginn</th>
+      <th class="py-2 px-2">Ende</th>
+      <th class="py-2 px-2">Aktionen</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for obj in page_obj %}
+    <tr class="border-b">
+      <td class="py-2 px-2 whitespace-nowrap">{{ obj.nummer_formatiert }}</td>
+      <td class="py-2 px-2">{{ obj.titel }}</td>
+      <td class="py-2 px-2">{{ obj.start_dt|date:"d.m.Y H:i" }}</td>
+      <td class="py-2 px-2">{{ obj.ende_dt|date:"d.m.Y H:i" }}</td>
+      <td class="py-2 px-2">
+        <a href="{% url 'dienst_detail' obj.pk %}" class="text-blue-600 hover:underline">Details</a>
+      </td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="5" class="py-4 px-2 text-center text-gray-500">Keine Einträge gefunden.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<div class="mt-3 flex gap-2 items-center">
+  {% if page_obj.has_previous %}
+    <a class="px-2 py-1 border rounded" href="?page={{ page_obj.previous_page_number }}&year={{ year }}&q={{ q }}">« Zurück</a>
+  {% endif %}
+  <span>Seite {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+  {% if page_obj.has_next %}
+    <a class="px-2 py-1 border rounded" href="?page={{ page_obj.next_page_number }}&year={{ year }}&q={{ q }}">Weiter »</a>
+  {% endif %}
+</div>
+{% endblock %}

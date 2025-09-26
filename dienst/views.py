@@ -9,6 +9,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
+from django.core.paginator import Paginator
+from django.db.models import Q
 
 from core.models import MailEmpfaenger
 from .models import (
@@ -162,6 +164,23 @@ def dienst_pdf(request, pk: int):
     resp = HttpResponse(pdf_bytes, content_type="application/pdf")
     resp["Content-Disposition"] = f'attachment; filename="Dienst_{obj.nummer_formatiert}.pdf"'
     return resp
+
+def dienst_liste(request):
+    q = request.GET.get("q", "").strip()
+    year = request.GET.get("year", "").strip()
+
+    qs = Dienst.objects.order_by("-year", "-seq")
+    if year.isdigit():
+        qs = qs.filter(year=int(year))
+    if q:
+        qs = qs.filter(
+            Q(titel__icontains=q)
+        )
+
+    paginator = Paginator(qs, 20)
+    page_obj = paginator.get_page(request.GET.get("page"))
+
+    return render(request, "dienst/list.html", {"page_obj": page_obj, "q": q, "year": year})
 
 # ---------- HTMX Add-Row ----------
 

@@ -1,8 +1,18 @@
 <tr class="border-b">
-  <td class="py-1">{{ form.mitglied }}</td>
-  <td class="py-1">{{ form.fahrzeug_funktion }}</td>
-  <td class="py-1">{{ form.agt_minuten }}</td>
   <td class="py-1">
+    {{ form.mitglied }}
+    {% if form.mitglied.errors %}<div class="text-red-600 text-xs">{{ form.mitglied.errors|join:", " }}</div>{% endif %}
+  </td>
+  <td class="py-1">
+    {{ form.fahrzeug_funktion }}
+    {% if form.fahrzeug_funktion.errors %}<div class="text-red-600 text-xs">{{ form.fahrzeug_funktion.errors|join:", " }}</div>{% endif %}
+  </td>
+  <td class="py-1">
+    {{ form.agt_minuten }}
+    {% if form.agt_minuten.errors %}<div class="text-red-600 text-xs">{{ form.agt_minuten.errors|join:", " }}</div>{% endif %}
+  </td>
+  <td class="py-1">
+    {% if form.non_field_errors %}<div class="text-red-600 text-xs">{{ form.non_field_errors|join:", " }}</div>{% endif %}
     {% if form.instance.pk %}{{ form.DELETE }} löschen{% endif %}
     {{ form.id }}
   </td>

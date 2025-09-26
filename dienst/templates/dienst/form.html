@@ -178,4 +178,44 @@
     <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">Speichern</button>
   </div>
 </form>
+
+<script>
+  (function() {
+    function updateRow(row) {
+      const sel = row.querySelector('select[name$="-mitglied"]');
+      const minInput = row.querySelector('input[name$="-agt_minuten"]');
+      if (!sel || !minInput) return;
+      const val = sel.value;
+      if (!val) { minInput.disabled = true; minInput.value = ""; return; }
+      fetch(`/api/mitglied/${val}/agt`, {headers: {"X-Requested-With":"XMLHttpRequest"}})
+        .then(r => r.json())
+        .then(data => {
+          const isAGT = !!data.agt;
+          minInput.disabled = !isAGT;
+          if (!isAGT) minInput.value = "";
+        })
+        .catch(() => { minInput.disabled = true; });
+    }
+
+    const tbody = document.getElementById('tn_tbody');
+    function bindRow(row) {
+      const sel = row.querySelector('select[name$="-mitglied"]');
+      if (sel) {
+        sel.addEventListener('change', () => updateRow(row));
+        updateRow(row);
+      }
+    }
+
+    if (tbody) {
+      tbody.querySelectorAll('tr').forEach(bindRow);
+      document.body.addEventListener('htmx:afterSwap', (ev) => {
+        if (ev.detail.target === tbody) {
+          const rows = tbody.querySelectorAll('tr');
+          bindRow(rows[rows.length - 1]);
+        }
+      });
+    }
+  })();
+</script>
+
 {% endblock %}

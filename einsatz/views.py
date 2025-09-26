@@ -6,6 +6,8 @@ from django.template.loader import render_to_string
 from django.urls import reverse
 from django.http import JsonResponse
 from django.http import HttpResponse
+from django.core.paginator import Paginator
+from django.db.models import Q
 
 from core.models import Einsatzstichwort
 
@@ -114,6 +116,27 @@ def einsatz_pdf(request, pk: int):
     resp = HttpResponse(pdf_bytes, content_type="application/pdf")
     resp["Content-Disposition"] = f'attachment; filename="Einsatz_{obj.nummer_formatiert}.pdf"'
     return resp
+
+def einsatz_liste(request):
+    q = request.GET.get("q", "").strip()
+    year = request.GET.get("year", "").strip()
+
+    qs = Einsatz.objects.select_related("stichwort").order_by("-year", "-seq")
+    if year.isdigit():
+        qs = qs.filter(year=int(year))
+    if q:
+        qs = qs.filter(
+            Q(stichwort__bezeichnung__icontains=q) |
+            Q(objektname__icontains=q) |
+            Q(einsatzgemeinde__icontains=q) |
+            Q(strasse_hausnr__icontains=q) |
+            Q(plz_ort__icontains=q)
+        )
+
+    paginator = Paginator(qs, 20)
+    page_obj = paginator.get_page(request.GET.get("page"))
+
+    return render(request, "einsatz/list.html", {"page_obj": page_obj, "q": q, "year": year})
 
 def stichwort_kategorie_api(request, pk: int):
     try:
