@@ -6,28 +6,42 @@
   <link rel="stylesheet" href="/static/pdfs/print.css">
 </head>
 <body>
-<header>
+<header id="doc-header">
   <h1>Einsatzbericht</h1>
-  <div>Nummer: {{ obj.nummer_formatiert }}</div>
-  <div>Beginn: {{ obj.start_dt|date:"d.m.Y H:i" }} — Ende: {{ obj.ende_dt|date:"d.m.Y H:i" }}</div>
-  <div>Dauer: {{ obj.dauer_stunden }} h</div>
+  <div class="small">
+    Nummer: <span class="mono">{{ obj.nummer_formatiert }}</span> |
+    Beginn: {{ obj.start_dt|date:"d.m.Y H:i" }} |
+    Ende: {{ obj.ende_dt|date:"d.m.Y H:i" }} |
+    Dauer: {{ obj.dauer_stunden }} h
+  </div>
   <div>Einsatzleiter: {{ obj.einsatzleiter|default:obj.einsatzleiter_text }}</div>
 </header>
 
 <section>
   <h2>Einsatzort</h2>
-  <div>{{ obj.objektname }}</div>
-  <div>{{ obj.strasse_hausnr }}, {{ obj.plz_ort }}</div>
-  <div>{{ obj.einsatzgemeinde }}, {{ obj.landkreis }}</div>
+  <div class="grid-2">
+    <div><strong>Objektname:</strong> {{ obj.objektname|default:"—" }}</div>
+    <div><strong>Adresse:</strong> {{ obj.strasse_hausnr|default:"—" }}, {{ obj.plz_ort|default:"—" }}</div>
+    <div><strong>Gemeinde:</strong> {{ obj.einsatzgemeinde|default:"—" }}</div>
+    <div><strong>Landkreis:</strong> {{ obj.landkreis|default:"—" }}</div>
+  </div>
 </section>
 
 <section>
   <h2>Angaben zur Person</h2>
   {% if obj.person %}
-    <div>{{ obj.person.get_typ_display }} — {{ obj.person.name_vorname }}</div>
-    <div>{{ obj.person.strasse_hausnr }}, {{ obj.person.plz_ort }}</div>
-    <div>Telefon: {{ obj.person.telefon }} — KFZ: {{ obj.person.kfz_kennz }}</div>
-    <div>Kostenbefreit: {{ obj.person.kostenbefreit|yesno:"Ja,Nein" }}{% if obj.person.kostenbefreit and obj.person.begruendung %} ({{ obj.person.begruendung }}){% endif %}</div>
+    <div class="grid-2">
+      <div><strong>Typ:</strong> {{ obj.person.get_typ_display }}</div>
+      <div><strong>Name:</strong> {{ obj.person.name_vorname }}</div>
+      <div><strong>Straße:</strong> {{ obj.person.strasse_hausnr|default:"—" }}</div>
+      <div><strong>PLZ/Ort:</strong> {{ obj.person.plz_ort|default:"—" }}</div>
+      <div><strong>Telefon:</strong> {{ obj.person.telefon|default:"—" }}</div>
+      <div><strong>KFZ:</strong> {{ obj.person.kfz_kennz|default:"—" }}</div>
+      <div class="grid-span-2">
+        <strong>Kostenbefreit:</strong> {{ obj.person.kostenbefreit|yesno:"Ja,Nein" }}
+        {% if obj.person.kostenbefreit and obj.person.begruendung %} ({{ obj.person.begruendung }}){% endif %}
+      </div>
+    </div>
   {% else %}
     <div>—</div>
   {% endif %}
@@ -35,16 +49,18 @@
 
 <section>
   <h2>Angaben zum Brand</h2>
-  <div>Brandumfang: {{ obj.brandumfang|default:"-" }}</div>
-  <div>Brandausbreitung: {{ obj.brandausbreitung|default:"-" }}</div>
-  <div>Brandgut: {{ obj.brandgut|default:"-" }}</div>
-  <div>Brandobjekt: {{ obj.brandobjekt|default:"-" }}</div>
-  <h3>Löschwasserentnahmestellen</h3>
+  <div class="grid-2">
+    <div><strong>Brandumfang:</strong> {{ obj.brandumfang|default:"—" }}</div>
+    <div><strong>Brandausbreitung:</strong> {{ obj.brandausbreitung|default:"—" }}</div>
+    <div><strong>Brandgut:</strong> {{ obj.brandgut|default:"—" }}</div>
+    <div><strong>Brandobjekt:</strong> {{ obj.brandobjekt|default:"—" }}</div>
+  </div>
+  <h3 class="mt-6">Löschwasserentnahmestellen</h3>
   <table>
     <thead><tr><th>Entnahmestelle</th><th>Menge</th></tr></thead>
     <tbody>
       {% for lw in obj.loeschwasser.all %}
-      <tr><td>{{ lw.entnahmestelle }}</td><td>{{ lw.menge|default:"-" }}</td></tr>
+      <tr><td>{{ lw.entnahmestelle }}</td><td>{{ lw.menge|default:"—" }}</td></tr>
       {% empty %}
       <tr><td colspan="2">—</td></tr>
       {% endfor %}
@@ -54,11 +70,13 @@
 
 <section>
   <h2>Angaben zur technischen Hilfeleistung</h2>
-  <div>Schadensereignis: {{ obj.schadensereignis|default:"-" }}</div>
-  <div>Personenrettung: {{ obj.personenrettung_typ|default:"-" }}{% if obj.personenrettung_anzahl %} — Anzahl: {{ obj.personenrettung_anzahl }}{% endif %}</div>
-  <div>Sicherheitswache: {{ obj.sicherheitswache|default:"-" }}</div>
-  <div>Fehlalarm: {{ obj.fehlalarm|default:"-" }}</div>
-  <div>Sonstige: {{ obj.sonstige|default:"-" }}</div>
+  <div class="grid-2">
+    <div><strong>Schadensereignis:</strong> {{ obj.schadensereignis|default:"—" }}</div>
+    <div><strong>Personenrettung:</strong> {{ obj.personenrettung_typ|default:"—" }}{% if obj.personenrettung_anzahl %} — Anzahl: {{ obj.personenrettung_anzahl }}{% endif %}</div>
+    <div><strong>Sicherheitswache:</strong> {{ obj.sicherheitswache|default:"—" }}</div>
+    <div><strong>Fehlalarm:</strong> {{ obj.fehlalarm|default:"—" }}</div>
+    <div><strong>Sonstige:</strong> {{ obj.sonstige|default:"—" }}</div>
+  </div>
 </section>
 
 <section>
@@ -67,16 +85,16 @@
     <thead><tr><th>Typ</th><th>km</th><th>Std.</th><th>erforderlich</th></tr></thead>
     <tbody>
       {% for ef in obj.einsatzfahrzeug_set.all %}
-      <tr><td>{{ ef.fahrzeug }}</td><td>{{ ef.kilometer|default:"-" }}</td><td>{{ ef.stunden|default:"-" }}</td><td>{{ ef.erforderlich|yesno:"Ja,Nein" }}</td></tr>
+      <tr><td>{{ ef.fahrzeug }}</td><td>{{ ef.kilometer|default:"—" }}</td><td>{{ ef.stunden|default:"—" }}</td><td>{{ ef.erforderlich|yesno:"Ja,Nein" }}</td></tr>
       {% endfor %}
       {% for ea in obj.einsatzanhaenger_set.all %}
-      <tr><td>{{ ea.anhaenger }}</td><td>{{ ea.kilometer|default:"-" }}</td><td>{{ ea.stunden|default:"-" }}</td><td>{{ ea.erforderlich|yesno:"Ja,Nein" }}</td></tr>
+      <tr><td>{{ ea.anhaenger }}</td><td>{{ ea.kilometer|default:"—" }}</td><td>{{ ea.stunden|default:"—" }}</td><td>{{ ea.erforderlich|yesno:"Ja,Nein" }}</td></tr>
       {% endfor %}
       {% for ab in obj.einsatzabrollbehaelter_set.all %}
-      <tr><td>{{ ab.abrollbehaelter }}</td><td>-</td><td>-</td><td>{{ ab.erforderlich|yesno:"Ja,Nein" }}</td></tr>
+      <tr><td>{{ ab.abrollbehaelter }}</td><td>—</td><td>—</td><td>{{ ab.erforderlich|yesno:"Ja,Nein" }}</td></tr>
       {% endfor %}
       {% for ofw in obj.einsatzortsfeuerwehr_set.all %}
-      <tr><td>{{ ofw.ortsfeuerwehr }}</td><td>-</td><td>-</td><td>{{ ofw.erforderlich|yesno:"Ja,Nein" }}</td></tr>
+      <tr><td>{{ ofw.ortsfeuerwehr }}</td><td>—</td><td>—</td><td>{{ ofw.erforderlich|yesno:"Ja,Nein" }}</td></tr>
       {% endfor %}
     </tbody>
   </table>
@@ -92,7 +110,6 @@
     {% endfor %}
   </ul>
 </section>
-
 
 <section>
   <h2>Einsatzmittel</h2>
@@ -113,13 +130,13 @@
   <div style="white-space: pre-wrap;">{{ obj.einsatzmassnahmen }}</div>
 </section>
 
-<section>
+<section class="page-break avoid-break">
   <h2>Eingesetztes Personal</h2>
   <table>
     <thead><tr><th>Mitglied</th><th>Fahrzeug/Funktion</th><th>AGT (Min)</th></tr></thead>
     <tbody>
       {% for t in obj.einsatzteilnahme_set.all %}
-      <tr><td>{{ t.mitglied }}</td><td>{{ t.fahrzeug_funktion }}</td><td>{{ t.agt_minuten|default:"-" }}</td></tr>
+      <tr><td>{{ t.mitglied }}</td><td>{{ t.fahrzeug_funktion }}</td><td>{{ t.agt_minuten|default:"—" }}</td></tr>
       {% empty %}
       <tr><td colspan="3">—</td></tr>
       {% endfor %}
@@ -127,8 +144,8 @@
   </table>
 </section>
 
-<footer>
-  <div>Unterschrift, Datum</div>
+<footer class="small">
+  Unterschrift, Datum
 </footer>
 </body>
 </html>

@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <title>Dienst {{ obj.nummer_formatiert }}</title>
+  <link rel="stylesheet" href="/static/pdfs/print.css">
+</head>
+<body>
+<header id="doc-header">
+  <h1>Dienstliste</h1>
+  <div class="small">
+    Nummer: <span class="mono">{{ obj.nummer_formatiert }}</span> |
+    Beginn: {{ obj.start_dt|date:"d.m.Y H:i" }} |
+    Ende: {{ obj.ende_dt|date:"d.m.Y H:i" }}
+  </div>
+  <div><strong>Titel:</strong> {{ obj.titel }}</div>
+</header>
+
+<section>
+  <h2>Beschreibung</h2>
+  <div style="white-space: pre-wrap;">{{ obj.beschreibung|default:"—" }}</div>
+</section>
+
+<section>
+  <h2>Fahrzeuge</h2>
+  <table>
+    <thead><tr><th>Fahrzeug</th><th>km</th><th>Std.</th></tr></thead>
+    <tbody>
+      {% for f in obj.dienstfahrzeug_set.all %}
+      <tr><td>{{ f.fahrzeug }}</td><td>{{ f.kilometer|default:"—" }}</td><td>{{ f.stunden|default:"—" }}</td></tr>
+      {% empty %}
+      <tr><td colspan="3">—</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>Abrollbehälter</h2>
+  <table>
+    <thead><tr><th>Abrollbehälter</th><th>erforderlich</th></tr></thead>
+    <tbody>
+      {% for ab in obj.dienstabrollbehaelter_set.all %}
+      <tr><td>{{ ab.abrollbehaelter }}</td><td>{{ ab.erforderlich|yesno:"Ja,Nein" }}</td></tr>
+      {% empty %}
+      <tr><td colspan="2">—</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>Anhänger</h2>
+  <table>
+    <thead><tr><th>Anhänger</th><th>km</th><th>Std.</th></tr></thead>
+    <tbody>
+      {% for a in obj.dienstanhaenger_set.all %}
+      <tr><td>{{ a.anhaenger }}</td><td>{{ a.kilometer|default:"—" }}</td><td>{{ a.stunden|default:"—" }}</td></tr>
+      {% empty %}
+      <tr><td colspan="3">—</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+<section class="page-break avoid-break">
+  <h2>Teilnehmende</h2>
+  <table>
+    <thead><tr><th>Mitglied</th><th>Fahrzeug/Funktion</th><th>AGT (Min)</th></tr></thead>
+    <tbody>
+      {% for t in obj.dienstteilnahme_set.all %}
+      <tr><td>{{ t.mitglied }}</td><td>{{ t.fahrzeug_funktion }}</td><td>{{ t.agt_minuten|default:"—" }}</td></tr>
+      {% empty %}
+      <tr><td colspan="3">—</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+<footer class="small">
+  Unterschrift, Datum
+</footer>
+</body>
+</html>
