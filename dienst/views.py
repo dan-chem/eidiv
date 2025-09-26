@@ -117,7 +117,7 @@ def dienst_neu(request):
                 an_formset.instance = d; an_formset.save()
                 tn_formset.instance = d; tn_formset.save()
 
-            html = render_to_string("einsatz/pdf.html", {"obj": e})
+            html = render_to_string("dienst/pdf.html", {"obj": d})
             pdf_bytes = render_html_to_pdf_bytes(html, base_url=request.build_absolute_uri("/"))
 
             subject = "Neue Dienstliste eingegangen"
