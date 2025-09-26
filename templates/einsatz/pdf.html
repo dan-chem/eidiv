@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <title>Einsatz {{ obj.nummer_formatiert }}</title>
+  <link rel="stylesheet" href="/static/pdfs/print.css">
+</head>
+<body>
+<header>
+  <h1>Einsatzbericht</h1>
+  <div>Nummer: {{ obj.nummer_formatiert }}</div>
+  <div>Beginn: {{ obj.start_dt|date:"d.m.Y H:i" }} — Ende: {{ obj.ende_dt|date:"d.m.Y H:i" }}</div>
+  <div>Dauer: {{ obj.dauer_stunden }} h</div>
+  <div>Einsatzleiter: {{ obj.einsatzleiter|default:obj.einsatzleiter_text }}</div>
+</header>
+
+<section>
+  <h2>Einsatzort</h2>
+  <div>{{ obj.objektname }}</div>
+  <div>{{ obj.strasse_hausnr }}, {{ obj.plz_ort }}</div>
+  <div>{{ obj.einsatzgemeinde }}, {{ obj.landkreis }}</div>
+</section>
+
+<section>
+  <h2>Angaben zur Person</h2>
+  {% if obj.person %}
+    <div>{{ obj.person.get_typ_display }} — {{ obj.person.name_vorname }}</div>
+    <div>{{ obj.person.strasse_hausnr }}, {{ obj.person.plz_ort }}</div>
+    <div>Telefon: {{ obj.person.telefon }} — KFZ: {{ obj.person.kfz_kennz }}</div>
+    <div>Kostenbefreit: {{ obj.person.kostenbefreit|yesno:"Ja,Nein" }}{% if obj.person.kostenbefreit and obj.person.begruendung %} ({{ obj.person.begruendung }}){% endif %}</div>
+  {% else %}
+    <div>—</div>
+  {% endif %}
+</section>
+
+<section>
+  <h2>Angaben zum Brand</h2>
+  <div>Brandumfang: {{ obj.brandumfang|default:"-" }}</div>
+  <div>Brandausbreitung: {{ obj.brandausbreitung|default:"-" }}</div>
+  <div>Brandgut: {{ obj.brandgut|default:"-" }}</div>
+  <div>Brandobjekt: {{ obj.brandobjekt|default:"-" }}</div>
+  <h3>Löschwasserentnahmestellen</h3>
+  <table>
+    <thead><tr><th>Entnahmestelle</th><th>Menge</th></tr></thead>
+    <tbody>
+      {% for lw in obj.loeschwasser.all %}
+      <tr><td>{{ lw.entnahmestelle }}</td><td>{{ lw.menge|default:"-" }}</td></tr>
+      {% empty %}
+      <tr><td colspan="2">—</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>Angaben zur technischen Hilfeleistung</h2>
+  <div>Schadensereignis: {{ obj.schadensereignis|default:"-" }}</div>
+  <div>Personenrettung: {{ obj.personenrettung_typ|default:"-" }}{% if obj.personenrettung_anzahl %} — Anzahl: {{ obj.personenrettung_anzahl }}{% endif %}</div>
+  <div>Sicherheitswache: {{ obj.sicherheitswache|default:"-" }}</div>
+  <div>Fehlalarm: {{ obj.fehlalarm|default:"-" }}</div>
+  <div>Sonstige: {{ obj.sonstige|default:"-" }}</div>
+</section>
+
+<section>
+  <h2>Fahrzeuge / Abrollbehälter / Anhänger / Ortsfeuerwehren</h2>
+  <table>
+    <thead><tr><th>Typ</th><th>km</th><th>Std.</th><th>erforderlich</th></tr></thead>
+    <tbody>
+      {% for ef in obj.einsatzfahrzeug_set.all %}
+      <tr><td>{{ ef.fahrzeug }}</td><td>{{ ef.kilometer|default:"-" }}</td><td>{{ ef.stunden|default:"-" }}</td><td>{{ ef.erforderlich|yesno:"Ja,Nein" }}</td></tr>
+      {% endfor %}
+      {% for ea in obj.einsatzanhaenger_set.all %}
+      <tr><td>{{ ea.anhaenger }}</td><td>{{ ea.kilometer|default:"-" }}</td><td>{{ ea.stunden|default:"-" }}</td><td>{{ ea.erforderlich|yesno:"Ja,Nein" }}</td></tr>
+      {% endfor %}
+      {% for ab in obj.einsatzabrollbehaelter_set.all %}
+      <tr><td>{{ ab.abrollbehaelter }}</td><td>-</td><td>-</td><td>{{ ab.erforderlich|yesno:"Ja,Nein" }}</td></tr>
+      {% endfor %}
+      {% for ofw in obj.einsatzortsfeuerwehr_set.all %}
+      <tr><td>{{ ofw.ortsfeuerwehr }}</td><td>-</td><td>-</td><td>{{ ofw.erforderlich|yesno:"Ja,Nein" }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>Einsatzmittel</h2>
+  <table>
+    <thead><tr><th>Artikel</th><th>Anzahl</th></tr></thead>
+    <tbody>
+      {% for em in obj.einsatzeinsatzmittel_set.all %}
+      <tr><td>{{ em.einsatzmittel }}</td><td>{{ em.anzahl }}</td></tr>
+      {% empty %}
+      <tr><td colspan="2">—</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>Einsatzmaßnahmen / Verwendetes Material</h2>
+  <div style="white-space: pre-wrap;">{{ obj.einsatzmassnahmen }}</div>
+</section>
+
+<section>
+  <h2>Eingesetztes Personal</h2>
+  <table>
+    <thead><tr><th>Mitglied</th><th>Fahrzeug/Funktion</th><th>AGT (Min)</th></tr></thead>
+    <tbody>
+      {% for t in obj.einsatzteilnahme_set.select_related("mitglied").all %}
+      <tr><td>{{ t.mitglied }}</td><td>{{ t.fahrzeug_funktion }}</td><td>{{ t.agt_minuten|default:"-" }}</td></tr>
+      {% empty %}
+      <tr><td colspan="3">—</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+<footer>
+  <div>Unterschrift, Datum</div>
+</footer>
+</body>
+</html>

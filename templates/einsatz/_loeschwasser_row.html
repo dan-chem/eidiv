@@ -1,0 +1,12 @@
+<tr>
+  <td>
+    {{ form.entnahmestelle }}
+  </td>
+  <td style="width: 120px;">
+    {{ form.menge }}
+  </td>
+  <td>
+    {% if form.instance.pk %}<input type="checkbox" name="{{ form.prefix }}-DELETE"> löschen{% endif %}
+    <input type="hidden" name="{{ form.prefix }}-id" value="{{ form.instance.pk|default_if_none:'' }}">
+  </td>
+</tr>

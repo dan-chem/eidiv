@@ -1,0 +1,8 @@
+<tr>
+  <td>{{ form.einsatzmittel }}</td>
+  <td style="width:100px;">{{ form.anzahl }}</td>
+  <td>
+    {% if form.instance.pk %}<input type="checkbox" name="{{ form.prefix }}-DELETE"> löschen{% endif %}
+    <input type="hidden" name="{{ form.prefix }}-id" value="{{ form.instance.pk|default_if_none:'' }}">
+  </td>
+</tr>
