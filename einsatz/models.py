@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Sum, Q
 
 # Create your models here.
 # einsatz/models.py
@@ -91,6 +92,36 @@ class Einsatz(models.Model):
             raise ValidationError("Bitte Einsatzleiter (Mitglied) oder Einsatzleiter (Text) angeben.")
         if self.personenrettung_anzahl is not None and self.personenrettung_anzahl < 0:
             raise ValidationError("Personenrettung: Anzahl darf nicht negativ sein.")
+    
+    @property
+    def teilnehmer_anzahl(self):
+        return self.einsatzteilnahme_set.count()
+
+    @property
+    def teilnehmer_hauptamtlich(self):
+        return self.einsatzteilnahme_set.filter(mitglied__hauptamtlich=True).count()
+
+    @property
+    def teilnehmer_ehrenamtlich(self):
+        return self.teilnehmer_anzahl - self.teilnehmer_hauptamtlich
+
+    @property
+    def gesamtstunden(self):
+        # einfache Metrik: Dauer in Stunden x Teilnehmeranzahl
+        return round(self.dauer_stunden * self.teilnehmer_anzahl, 2)
+
+    @property
+    def summe_kilometer(self):
+        ef_km = self.einsatzfahrzeug_set.aggregate(s=Sum("kilometer"))["s"] or 0
+        ea_km = self.einsatzanhaenger_set.aggregate(s=Sum("kilometer"))["s"] or 0
+        return (ef_km or 0) + (ea_km or 0)
+
+    @property
+    def summe_fahrzeugstunden(self):
+        ef_st = self.einsatzfahrzeug_set.aggregate(s=Sum("stunden"))["s"] or 0
+        ea_st = self.einsatzanhaenger_set.aggregate(s=Sum("stunden"))["s"] or 0
+        # Decimal -> float für Anzeige ok
+        return float(ef_st or 0) + float(ea_st or 0)
 
 class EinsatzPerson(models.Model):
     TYP_CHOICES = [

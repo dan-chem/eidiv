@@ -4,13 +4,14 @@ from django.contrib import messages
 from django.core.mail import EmailMessage
 from django.db import transaction
 from django.db.models import Max
-from django.forms import inlineformset_factory
+from django.forms import inlineformset_factory, NumberInput, Select, TextInput, CheckboxInput
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
 from django.core.paginator import Paginator
 from django.db.models import Q
+from django.contrib.auth.decorators import login_required
 
 from core.models import MailEmpfaenger
 from .models import (
@@ -20,6 +21,8 @@ from .models import (
     DienstAnhaenger,
     DienstTeilnahme,
 )
+
+common = {"class": "w-full border rounded px-2 py-1"}
 
 # ---------- Helpers ----------
 
@@ -67,6 +70,11 @@ DienstFahrzeugFormSet = inlineformset_factory(
     parent_model=Dienst,
     model=DienstFahrzeug,
     fields=["fahrzeug", "kilometer", "stunden"],
+    widgets={
+        "fahrzeug": Select(attrs=common),
+        "kilometer": NumberInput(attrs={**common, "min": 0}),
+        "stunden": NumberInput(attrs={**common, "min": 0, "step": "0.01"}),
+    },
     extra=0,
     can_delete=True,
 )
@@ -75,6 +83,10 @@ DienstAbrollFormSet = inlineformset_factory(
     parent_model=Dienst,
     model=DienstAbrollbehaelter,
     fields=["abrollbehaelter", "erforderlich"],
+    widgets={
+        "abrollbehaelter": Select(attrs=common),
+        "erforderlich": CheckboxInput(),  # Checkbox erhält Style über globale Defaults
+    },
     extra=0,
     can_delete=True,
 )
@@ -83,6 +95,11 @@ DienstAnhaengerFormSet = inlineformset_factory(
     parent_model=Dienst,
     model=DienstAnhaenger,
     fields=["anhaenger", "kilometer", "stunden"],
+    widgets={
+        "anhaenger": Select(attrs=common),
+        "kilometer": NumberInput(attrs={**common, "min": 0}),
+        "stunden": NumberInput(attrs={**common, "min": 0, "step": "0.01"}),
+    },
     extra=0,
     can_delete=True,
 )
@@ -91,12 +108,18 @@ DienstTeilnahmeFormSet = inlineformset_factory(
     parent_model=Dienst,
     model=DienstTeilnahme,
     fields=["mitglied", "fahrzeug_funktion", "agt_minuten"],
+    widgets={
+        "mitglied": Select(attrs=common),
+        "fahrzeug_funktion": TextInput(attrs=common),
+        "agt_minuten": NumberInput(attrs={**common, "min": 0}),
+    },
     extra=0,
     can_delete=True,
 )
 
 # ---------- Views ----------
 
+@login_required
 def dienst_neu(request):
     if request.method == "POST":
         d = Dienst()
@@ -152,10 +175,12 @@ def dienst_neu(request):
         "tn_formset": tn_formset,
     })
 
+@login_required
 def dienst_detail(request, pk: int):
     obj = get_object_or_404(Dienst, pk=pk)
     return render(request, "dienst/detail.html", {"obj": obj})
 
+@login_required
 def dienst_pdf(request, pk: int):
     obj = get_object_or_404(Dienst, pk=pk)
     html = render_to_string("dienst/pdf.html", {"obj": obj})
@@ -165,6 +190,7 @@ def dienst_pdf(request, pk: int):
     resp["Content-Disposition"] = f'attachment; filename="Dienst_{obj.nummer_formatiert}.pdf"'
     return resp
 
+@login_required
 def dienst_liste(request):
     q = request.GET.get("q", "").strip()
     year = request.GET.get("year", "").strip()
@@ -184,24 +210,28 @@ def dienst_liste(request):
 
 # ---------- HTMX Add-Row ----------
 
+@login_required
 def htmx_add_fahrzeug(request):
     d = Dienst()
     formset = DienstFahrzeugFormSet(instance=d, prefix="fv")
     form = formset._construct_form(formset.total_form_count())
     return render(request, "dienst/_fahrzeug_row.html", {"form": form})
 
+@login_required
 def htmx_add_abroll(request):
     d = Dienst()
     formset = DienstAbrollFormSet(instance=d, prefix="ab")
     form = formset._construct_form(formset.total_form_count())
     return render(request, "dienst/_abroll_row.html", {"form": form})
 
+@login_required
 def htmx_add_anhaenger(request):
     d = Dienst()
     formset = DienstAnhaengerFormSet(instance=d, prefix="an")
     form = formset._construct_form(formset.total_form_count())
     return render(request, "dienst/_anhaenger_row.html", {"form": form})
 
+@login_required
 def htmx_add_teilnahme(request):
     d = Dienst()
     formset = DienstTeilnahmeFormSet(instance=d, prefix="tn")

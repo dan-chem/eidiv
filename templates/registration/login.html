@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <title>Login – EiDiV</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center">
+  <form method="post" class="bg-white rounded shadow p-6 w-full max-w-sm space-y-4">
+    {% csrf_token %}
+    <h1 class="text-xl font-semibold">Anmeldung</h1>
+
+    {% if form.non_field_errors %}
+      <div class="text-red-600 text-sm">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    <div>
+      <label for="{{ form.username.id_for_label }}">Benutzername</label>
+      {{ form.username }}
+      {% if form.username.errors %}
+        <div class="text-red-600 text-xs">{{ form.username.errors|join:", " }}</div>
+      {% endif %}
+    </div>
+
+    <div>
+      <label for="{{ form.password.id_for_label }}">Passwort</label>
+      {{ form.password }}
+      {% if form.password.errors %}
+        <div class="text-red-600 text-xs">{{ form.password.errors|join:", " }}</div>
+      {% endif %}
+    </div>
+
+    <button class="px-4 py-2 bg-blue-600 text-white rounded w-full">Einloggen</button>
+  </form>
+</body>
+</html>

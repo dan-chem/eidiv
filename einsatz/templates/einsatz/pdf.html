@@ -144,6 +144,20 @@
   </table>
 </section>
 
+<section>
+  <h2>Statistik</h2>
+  <div class="grid-3">
+    <div><strong>Einsatzdauer (h):</strong> {{ obj.dauer_stunden }}</div>
+    <div><strong>Gesamtstunden:</strong> {{ obj.gesamtstunden }}</div>
+    <div><strong>Eingesetztes Personal:</strong> {{ obj.teilnehmer_anzahl }}</div>
+    <div><strong>Hauptamtlich:</strong> {{ obj.teilnehmer_hauptamtlich }}</div>
+    <div><strong>Ehrenamtlich:</strong> {{ obj.teilnehmer_ehrenamtlich }}</div>
+    <div><strong>km gesamt (Fzg+Anh):</strong> {{ obj.summe_kilometer }}</div>
+    <div><strong>Std. Fzg+Anh gesamt:</strong> {{ obj.summe_fahrzeugstunden }}</div>
+  </div>
+</section>
+
+
 <footer class="small">
   Unterschrift, Datum
 </footer>

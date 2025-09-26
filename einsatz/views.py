@@ -8,6 +8,7 @@ from django.http import JsonResponse
 from django.http import HttpResponse
 from django.core.paginator import Paginator
 from django.db.models import Q
+from django.contrib.auth.decorators import login_required
 
 from core.models import Einsatzstichwort
 
@@ -20,7 +21,7 @@ from .forms import (
 )
 from .services import assign_running_number, render_html_to_pdf_bytes, send_mail_with_pdf
 
-
+@login_required
 def einsatz_neu(request):
     if request.method == "POST":
         e = Einsatz()
@@ -102,12 +103,12 @@ def einsatz_neu(request):
         "tn_fs": tn_fs,
     })
 
-
+@login_required
 def einsatz_detail(request, pk: int):
     obj = get_object_or_404(Einsatz, pk=pk)
     return render(request, "einsatz/detail.html", {"obj": obj})
 
-
+@login_required
 def einsatz_pdf(request, pk: int):
     obj = get_object_or_404(Einsatz, pk=pk)
     html = render_to_string("einsatz/pdf.html", {"obj": obj})
@@ -117,6 +118,7 @@ def einsatz_pdf(request, pk: int):
     resp["Content-Disposition"] = f'attachment; filename="Einsatz_{obj.nummer_formatiert}.pdf"'
     return resp
 
+@login_required
 def einsatz_liste(request):
     q = request.GET.get("q", "").strip()
     year = request.GET.get("year", "").strip()
@@ -138,6 +140,7 @@ def einsatz_liste(request):
 
     return render(request, "einsatz/list.html", {"page_obj": page_obj, "q": q, "year": year})
 
+@login_required
 def stichwort_kategorie_api(request, pk: int):
     try:
         esw = Einsatzstichwort.objects.get(pk=pk)
@@ -145,6 +148,7 @@ def stichwort_kategorie_api(request, pk: int):
     except Einsatzstichwort.DoesNotExist:
         return JsonResponse({"kategorie": "sonstig"})
 
+@login_required
 def stichwort_options(request):
     # akzeptiere sowohl ?kat=… als auch ?stichwort_kategorie=…
     kat = request.GET.get("kat") or request.GET.get("stichwort_kategorie")
@@ -159,48 +163,56 @@ def stichwort_options(request):
 
 
 # HTMX-Add: liefert eine zusätzliche Zeile je Formset
+@login_required
 def htmx_add_loeschwasser(request):
     e = Einsatz()
     fs = LoeschwasserFormSet(instance=e, prefix="lw")
     form = fs._construct_form(fs.total_form_count())
     return render(request, "einsatz/_loeschwasser_row.html", {"form": form})
 
+@login_required
 def htmx_add_einsatzmittel(request):
     e = Einsatz()
     fs = EinsatzmittelFormSet(instance=e, prefix="em")
     form = fs._construct_form(fs.total_form_count())
     return render(request, "einsatz/_einsatzmittel_row.html", {"form": form})
 
+@login_required
 def htmx_add_fahrzeug(request):
     e = Einsatz()
     fs = EinsatzFahrzeugFormSet(instance=e, prefix="vf")
     form = fs._construct_form(fs.total_form_count())
     return render(request, "einsatz/_fahrzeug_row.html", {"form": form})
 
+@login_required
 def htmx_add_abroll(request):
     e = Einsatz()
     fs = EinsatzAbrollFormSet(instance=e, prefix="ab")
     form = fs._construct_form(fs.total_form_count())
     return render(request, "einsatz/_abroll_row.html", {"form": form})
 
+@login_required
 def htmx_add_anhaenger(request):
     e = Einsatz()
     fs = EinsatzAnhaengerFormSet(instance=e, prefix="an")
     form = fs._construct_form(fs.total_form_count())
     return render(request, "einsatz/_anhaenger_row.html", {"form": form})
 
+@login_required
 def htmx_add_ortsfeuerwehr(request):
     e = Einsatz()
     fs = EinsatzOrtsfeuerwehrFormSet(instance=e, prefix="of")
     form = fs._construct_form(fs.total_form_count())
     return render(request, "einsatz/_ortsfeuerwehr_row.html", {"form": form})
 
+@login_required
 def htmx_add_zusatzstelle(request):
     e = Einsatz()
     fs = ZusatzstelleFormSet(instance=e, prefix="zs")
     form = fs._construct_form(fs.total_form_count())
     return render(request, "einsatz/_zusatzstelle_row.html", {"form": form})
 
+@login_required
 def htmx_add_teilnahme(request):
     e = Einsatz()
     fs = EinsatzTeilnahmeFormSet(instance=e, prefix="tn")

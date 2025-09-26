@@ -14,16 +14,33 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-# eidiv/urls.py
 from django.contrib import admin
 from django.urls import path, include
-from core.views import index, api_mitglied_agt  # <- api_mitglied_agt importieren
+from django.contrib.auth import views as auth_views
+from core.views import index, api_mitglied_agt
+from core.forms import StyledAuthenticationForm
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', index, name='index'),
+
+    # Auth
+    path(
+        'accounts/login/',
+        auth_views.LoginView.as_view(
+            template_name='registration/login.html',
+            authentication_form=StyledAuthenticationForm
+        ),
+        name='login'
+    ),
+    path('accounts/logout/', auth_views.LogoutView.as_view(), name='logout'),
+
+    # API
     path('api/mitglied/<int:pk>/agt', api_mitglied_agt, name='api_mitglied_agt'),
+
+    # Apps
     path('einsatz/', include('einsatz.urls')),
     path('dienst/', include('dienst.urls')),
 ]
+
 

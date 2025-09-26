@@ -1,6 +1,7 @@
 # dienst/models.py
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models import Sum
 from core.models import Mitglied, Fahrzeug, Abrollbehaelter, Anhaenger
 
 class Dienst(models.Model):
@@ -28,6 +29,41 @@ class Dienst(models.Model):
     def clean(self):
         if self.start_dt and self.ende_dt and self.start_dt >= self.ende_dt:
             raise ValidationError("Ende muss nach Beginn liegen.")
+
+    @property
+    def teilnehmer_anzahl(self):
+        return self.dienstteilnahme_set.count()
+
+    @property
+    def teilnehmer_hauptamtlich(self):
+        return self.dienstteilnahme_set.filter(mitglied__hauptamtlich=True).count()
+
+    @property
+    def teilnehmer_ehrenamtlich(self):
+        return self.teilnehmer_anzahl - self.teilnehmer_hauptamtlich
+
+    @property
+    def dauer_stunden(self):
+        if self.start_dt and self.ende_dt:
+            delta = self.ende_dt - self.start_dt
+            return round((delta.total_seconds() / 3600.0), 2)
+        return 0.0
+
+    @property
+    def gesamtstunden(self):
+        return round(self.dauer_stunden * self.teilnehmer_anzahl, 2)
+
+    @property
+    def summe_kilometer(self):
+        df_km = self.dienstfahrzeug_set.aggregate(s=Sum("kilometer"))["s"] or 0
+        da_km = self.dienstanhaenger_set.aggregate(s=Sum("kilometer"))["s"] or 0
+        return (df_km or 0) + (da_km or 0)
+
+    @property
+    def summe_fahrzeugstunden(self):
+        df_st = self.dienstfahrzeug_set.aggregate(s=Sum("stunden"))["s"] or 0
+        da_st = self.dienstanhaenger_set.aggregate(s=Sum("stunden"))["s"] or 0
+        return float(df_st or 0) + float(da_st or 0)
 
 class DienstFahrzeug(models.Model):
     dienst = models.ForeignKey(Dienst, on_delete=models.CASCADE)
