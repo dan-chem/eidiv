@@ -51,13 +51,12 @@ class Einsatz(models.Model):
     # Freitext
     einsatzmassnahmen = models.TextField(blank=True, verbose_name="Einsatzmaßnahmen / Verwendetes Material")
 
-    # M2M
-    zusatzstellen = models.ManyToManyField(Zusatzstelle, blank=True)
     # Throughs:
     fahrzeuge = models.ManyToManyField(Fahrzeug, through="EinsatzFahrzeug", blank=True)
     abrollbehaelter = models.ManyToManyField(Abrollbehaelter, through="EinsatzAbrollbehaelter", blank=True)
     anhaenger = models.ManyToManyField(Anhaenger, through="EinsatzAnhaenger", blank=True)
     ortsfeuerwehren = models.ManyToManyField(Ortsfeuerwehr, through="EinsatzOrtsfeuerwehr", blank=True)
+    zusatzstellen = models.ManyToManyField(Zusatzstelle, through="EinsatzZusatzstelle", blank=True)
     einsatzmittel = models.ManyToManyField(Einsatzmittel, through="EinsatzEinsatzmittel", blank=True)
     teilnahmen = models.ManyToManyField(Mitglied, through="EinsatzTeilnahme", related_name="einsatz_teilnahmen", blank=True)
 
@@ -154,6 +153,13 @@ class EinsatzOrtsfeuerwehr(models.Model):
 
     class Meta:
         unique_together = [("einsatz", "ortsfeuerwehr")]
+
+class EinsatzZusatzstelle(models.Model):
+    einsatz = models.ForeignKey(Einsatz, on_delete=models.CASCADE)
+    zusatzstelle = models.ForeignKey(Zusatzstelle, on_delete=models.PROTECT)
+
+    class Meta:
+        unique_together = [("einsatz", "zusatzstelle")]
 
 class EinsatzEinsatzmittel(models.Model):
     einsatz = models.ForeignKey(Einsatz, on_delete=models.CASCADE)

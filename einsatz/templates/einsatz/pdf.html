@@ -83,6 +83,18 @@
 </section>
 
 <section>
+  <h2>Zusätzliche anwesende Stellen</h2>
+  <ul>
+    {% for zs in obj.einsatzzusatzstelle_set.all %}
+      <li>{{ zs.zusatzstelle }}</li>
+    {% empty %}
+      <li>—</li>
+    {% endfor %}
+  </ul>
+</section>
+
+
+<section>
   <h2>Einsatzmittel</h2>
   <table>
     <thead><tr><th>Artikel</th><th>Anzahl</th></tr></thead>
@@ -106,7 +118,7 @@
   <table>
     <thead><tr><th>Mitglied</th><th>Fahrzeug/Funktion</th><th>AGT (Min)</th></tr></thead>
     <tbody>
-      {% for t in obj.einsatzteilnahme_set.select_related("mitglied").all %}
+      {% for t in obj.einsatzteilnahme_set.all %}
       <tr><td>{{ t.mitglied }}</td><td>{{ t.fahrzeug_funktion }}</td><td>{{ t.agt_minuten|default:"-" }}</td></tr>
       {% empty %}
       <tr><td colspan="3">—</td></tr>

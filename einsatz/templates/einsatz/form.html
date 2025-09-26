@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="text-xl font-semibold mb-4">Einsatz erfassen</h1>
+
+<form method="post" class="space-y-8">
+  {% csrf_token %}
+
+  <!-- Allgemein -->
+  <section class="bg-white p-4 rounded shadow">
+    <h2 class="font-semibold mb-3">Allgemeine Einsatzdaten</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label class="block text-sm font-medium">Einsatzstichwort</label>
+        {{ form.stichwort }}
+      </div>
+      <div>
+        <label class="block text-sm font-medium">Meldende Stelle</label>
+        {{ form.meldende_stelle }}
+      </div>
+      <div>
+        <label class="block text-sm font-medium">Beginn</label>
+        {{ form.start_dt }}
+      </div>
+      <div>
+        <label class="block text-sm font-medium">Ende</label>
+        {{ form.ende_dt }}
+      </div>
+      <div>
+        <label class="block text-sm font-medium">Einsatzleiter (Mitglied)</label>
+        {{ form.einsatzleiter }}
+      </div>
+      <div>
+        <label class="block text-sm font-medium">Einsatzleiter (Text, extern)</label>
+        {{ form.einsatzleiter_text }}
+      </div>
+    </div>
+    {% if form.non_field_errors %}<p class="text-red-600 mt-2">{{ form.non_field_errors }}</p>{% endif %}
+  </section>
+
+  <!-- Einsatzort -->
+  <section class="bg-white p-4 rounded shadow">
+    <h2 class="font-semibold mb-3">Einsatzort</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div><label class="block text-sm font-medium">Objektname</label>{{ form.objektname }}</div>
+      <div><label class="block text-sm font-medium">Straße, Hausnummer</label>{{ form.strasse_hausnr }}</div>
+      <div><label class="block text-sm font-medium">PLZ, Ort</label>{{ form.plz_ort }}</div>
+      <div><label class="block text-sm font-medium">Einsatzgemeinde</label>{{ form.einsatzgemeinde }}</div>
+      <div class="md:col-span-2"><label class="block text-sm font-medium">Landkreis</label>{{ form.landkreis }}</div>
+    </div>
+  </section>
+
+  <!-- Angaben zur Person -->
+  <section class="bg-white p-4 rounded shadow">
+    <h2 class="font-semibold mb-3">Angaben zur Person</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div><label class="block text-sm font-medium">Typ</label>{{ person_form.typ }}</div>
+      <div><label class="block text-sm font-medium">Name, Vorname</label>{{ person_form.name_vorname }}</div>
+      <div><label class="block text-sm font-medium">Straße, Hausnummer</label>{{ person_form.strasse_hausnr }}</div>
+      <div><label class="block text-sm font-medium">PLZ, Ort</label>{{ person_form.plz_ort }}</div>
+      <div><label class="block text-sm font-medium">Telefon</label>{{ person_form.telefon }}</div>
+      <div><label class="block text-sm font-medium">KFZ-Kennzeichen</label>{{ person_form.kfz_kennz }}</div>
+      <div class="flex items-center gap-2">
+        <label class="text-sm font-medium">Kostenbefreit</label>{{ person_form.kostenbefreit }}
+      </div>
+      <div><label class="block text-sm font-medium">Begründung</label>{{ person_form.begruendung }}</div>
+    </div>
+  </section>
+
+  <!-- Angaben zum Brand -->
+  <section class="bg-white p-4 rounded shadow">
+    <h2 class="font-semibold mb-3">Angaben zum Brand</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div><label class="block text-sm font-medium">Brandumfang</label>{{ form.brandumfang }}</div>
+      <div><label class="block text-sm font-medium">Brandausbreitung</label>{{ form.brandausbreitung }}</div>
+      <div><label class="block text-sm font-medium">Brandgut</label>{{ form.brandgut }}</div>
+      <div><label class="block text-sm font-medium">Brandobjekt</label>{{ form.brandobjekt }}</div>
+    </div>
+
+    <h3 class="font-medium mt-4 mb-2">Löschwasserentnahmestellen</h3>
+    {{ lw_fs.management_form }}
+    <table class="w-full text-sm">
+      <thead><tr class="text-left border-b"><th class="py-2">Entnahmestelle</th><th class="py-2" style="width:120px;">Menge</th><th class="py-2" style="width:100px;">Aktion</th></tr></thead>
+      <tbody id="lw_tbody">
+        {% for f in lw_fs %}{% include "einsatz/_loeschwasser_row.html" with form=f %}{% empty %}{% endfor %}
+      </tbody>
+    </table>
+    <button type="button"
+            class="mt-2 px-3 py-1 border rounded text-sm"
+            hx-get="{% url 'einsatz_htmx_add_loeschwasser' %}"
+            hx-target="#lw_tbody"
+            hx-swap="beforeend"
+            data-formset-prefix="lw">+ Zeile hinzufügen</button>
+  </section>
+
+  <!-- Technische Hilfeleistung -->
+  <section class="bg-white p-4 rounded shadow">
+    <h2 class="font-semibold mb-3">Angaben zur technischen Hilfeleistung</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div><label class="block text-sm font-medium">Schadensereignis</label>{{ form.schadensereignis }}</div>
+      <div><label class="block text-sm font-medium">Personenrettung</label>{{ form.personenrettung_typ }}</div>
+      <div><label class="block text-sm font-medium">Anzahl geretteter Personen</label>{{ form.personenrettung_anzahl }}</div>
+      <div><label class="block text-sm font-medium">Sicherheitswache</label>{{ form.sicherheitswache }}</div>
+      <div><label class="block text-sm font-medium">Fehlalarm</label>{{ form.fehlalarm }}</div>
+      <div><label class="block text-sm font-medium">Sonstige</label>{{ form.sonstige }}</div>
+    </div>
+  </section>
+
+  <!-- Fahrzeuge -->
+  <section class="bg-white p-4 rounded shadow">
+    <h2 class="font-semibold mb-3">Fahrzeuge</h2>
+    {{ vf_fs.management_form }}
+    <table class="w-full text-sm">
+      <thead><tr class="text-left border-b"><th class="py-2">Fahrzeug</th><th class="py-2" style="width:120px;">km</th><th class="py-2" style="width:100px;">Std.</th><th class="py-2" style="width:120px;">erforderlich</th><th class="py-2" style="width:100px;">Aktion</th></tr></thead>
+      <tbody id="vf_tbody">
+        {% for f in vf_fs %}{% include "einsatz/_fahrzeug_row.html" with form=f %}{% empty %}{% endfor %}
+      </tbody>
+    </table>
+    <button type="button" class="mt-2 px-3 py-1 border rounded text-sm"
+            hx-get="{% url 'einsatz_htmx_add_fahrzeug' %}" hx-target="#vf_tbody" hx-swap="beforeend" data-formset-prefix="vf">+ Zeile hinzufügen</button>
+  </section>
+
+  <!-- Abrollbehälter -->
+  <section class="bg-white p-4 rounded shadow">
+    <h2 class="font-semibold mb-3">Abrollbehälter</h2>
+    {{ ab_fs.management_form }}
+    <table class="w-full text-sm">
+      <thead><tr class="text-left border-b"><th class="py-2">Abrollbehälter</th><th class="py-2" style="width:120px;">erforderlich</th><th class="py-2" style="width:100px;">Aktion</th></tr></thead>
+      <tbody id="ab_tbody">
+        {% for f in ab_fs %}{% include "einsatz/_abroll_row.html" with form=f %}{% empty %}{% endfor %}
+      </tbody>
+    </table>
+    <button type="button" class="mt-2 px-3 py-1 border rounded text-sm"
+            hx-get="{% url 'einsatz_htmx_add_abroll' %}" hx-target="#ab_tbody" hx-swap="beforeend" data-formset-prefix="ab">+ Zeile hinzufügen</button>
+  </section>
+
+  <!-- Anhänger -->
+  <section class="bg-white p-4 rounded shadow">
+    <h2 class="font-semibold mb-3">Anhänger</h2>
+    {{ an_fs.management_form }}
+    <table class="w-full text-sm">
+      <thead><tr class="text-left border-b"><th class="py-2">Anhänger</th><th class="py-2" style="width:120px;">km</th><th class="py-2" style="width:100px;">Std.</th><th class="py-2" style="width:120px;">erforderlich</th><th class="py-2" style="width:100px;">Aktion</th></tr></thead>
+      <tbody id="an_tbody">
+        {% for f in an_fs %}{% include "einsatz/_anhaenger_row.html" with form=f %}{% empty %}{% endfor %}
+      </tbody>
+    </table>
+    <button type="button" class="mt-2 px-3 py-1 border rounded text-sm"
+            hx-get="{% url 'einsatz_htmx_add_anhaenger' %}" hx-target="#an_tbody" hx-swap="beforeend" data-formset-prefix="an">+ Zeile hinzufügen</button>
+  </section>
+
+  <!-- Ortsfeuerwehren -->
+  <section class="bg-white p-4 rounded shadow">
+    <h2 class="font-semibold mb-3">Ortsfeuerwehren</h2>
+    {{ of_fs.management_form }}
+    <table class="w-full text-sm">
+      <thead><tr class="text-left border-b"><th class="py-2">Ortsfeuerwehr</th><th class="py-2" style="width:120px;">erforderlich</th><th class="py-2" style="width:100px;">Aktion</th></tr></thead>
+      <tbody id="of_tbody">
+        {% for f in of_fs %}{% include "einsatz/_ortsfeuerwehr_row.html" with form=f %}{% empty %}{% endfor %}
+      </tbody>
+    </table>
+    <button type="button" class="mt-2 px-3 py-1 border rounded text-sm"
+            hx-get="{% url 'einsatz_htmx_add_ofw' %}" hx-target="#of_tbody" hx-swap="beforeend" data-formset-prefix="of">+ Zeile hinzufügen</button>
+  </section>
+
+  <!-- Zusätzliche Stellen -->
+<section class="bg-white p-4 rounded shadow">
+  <h2 class="font-semibold mb-3">Zusätzliche anwesende Stellen</h2>
+  {{ zs_fs.management_form }}
+  <table class="w-full text-sm">
+    <thead>
+      <tr class="text-left border-b">
+        <th class="py-2">Stelle</th>
+        <th class="py-2" style="width:100px;">Aktion</th>
+      </tr>
+    </thead>
+    <tbody id="zs_tbody">
+      {% for f in zs_fs %}
+        {% include "einsatz/_zusatzstelle_row.html" with form=f %}
+      {% empty %}
+      {% endfor %}
+    </tbody>
+  </table>
+  <button type="button"
+          class="mt-2 px-3 py-1 border rounded text-sm"
+          hx-get="{% url 'einsatz_htmx_add_zusatzstelle' %}"
+          hx-target="#zs_tbody"
+          hx-swap="beforeend"
+          data-formset-prefix="zs">
+    + Zeile hinzufügen
+  </button>
+</section>
+
+
+  <!-- Einsatzmittel -->
+  <section class="bg-white p-4 rounded shadow">
+    <h2 class="font-semibold mb-3">Einsatzmittel</h2>
+    {{ em_fs.management_form }}
+    <table class="w-full text-sm">
+      <thead><tr class="text-left border-b"><th class="py-2">Artikel</th><th class="py-2" style="width:120px;">Anzahl</th><th class="py-2" style="width:100px;">Aktion</th></tr></thead>
+      <tbody id="em_tbody">
+        {% for f in em_fs %}{% include "einsatz/_einsatzmittel_row.html" with form=f %}{% empty %}{% endfor %}
+      </tbody>
+    </table>
+    <button type="button" class="mt-2 px-3 py-1 border rounded text-sm"
+            hx-get="{% url 'einsatz_htmx_add_einsatzmittel' %}" hx-target="#em_tbody" hx-swap="beforeend" data-formset-prefix="em">+ Zeile hinzufügen</button>
+  </section>
+
+  <!-- Einsatzmaßnahmen -->
+  <section class="bg-white p-4 rounded shadow">
+    <h2 class="font-semibold mb-3">Einsatzmaßnahmen / Verwendetes Material</h2>
+    {{ form.einsatzmassnahmen }}
+  </section>
+
+  <!-- Personal -->
+  <section class="bg-white p-4 rounded shadow">
+    <h2 class="font-semibold mb-3">Eingesetztes Personal</h2>
+    {{ tn_fs.management_form }}
+    <table class="w-full text-sm">
+      <thead><tr class="text-left border-b"><th class="py-2">Mitglied</th><th class="py-2">Fahrzeug/Funktion</th><th class="py-2" style="width:120px;">AGT (Min)</th><th class="py-2" style="width:100px;">Aktion</th></tr></thead>
+      <tbody id="tn_tbody">
+        {% for f in tn_fs %}{% include "einsatz/_teilnahme_row.html" with form=f %}{% empty %}{% endfor %}
+      </tbody>
+    </table>
+    <button type="button" class="mt-2 px-3 py-1 border rounded text-sm"
+            hx-get="{% url 'einsatz_htmx_add_teilnahme' %}" hx-target="#tn_tbody" hx-swap="beforeend" data-formset-prefix="tn">+ Zeile hinzufügen</button>
+  </section>
+
+  <div>
+    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">Speichern</button>
+  </div>
+</form>
+{% endblock %}

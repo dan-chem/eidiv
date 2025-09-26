@@ -1,0 +1,8 @@
+<tr class="border-b">
+  <td class="py-1">{{ form.abrollbehaelter }}</td>
+  <td class="py-1">{{ form.erforderlich }}</td>
+  <td class="py-1">
+    {% if form.instance.pk %}{{ form.DELETE }} löschen{% endif %}
+    {{ form.id }}
+  </td>
+</tr>

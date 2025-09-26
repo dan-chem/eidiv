@@ -1,76 +1,162 @@
 # einsatz/views.py
-from django.shortcuts import render, redirect, get_object_or_404
-from django.urls import reverse
-from django.db import transaction
-from django.template.loader import render_to_string
 from django.contrib import messages
+from django.db import transaction
+from django.shortcuts import get_object_or_404, redirect, render
+from django.template.loader import render_to_string
+from django.urls import reverse
 
 from .models import Einsatz
-from .forms import EinsatzForm, EinsatzPersonForm, LoeschwasserFormSet, EinsatzmittelFormSet
+from .forms import (
+    EinsatzForm, EinsatzPersonForm,
+    LoeschwasserFormSet, EinsatzmittelFormSet,
+    EinsatzFahrzeugFormSet, EinsatzAbrollFormSet, EinsatzAnhaengerFormSet, EinsatzOrtsfeuerwehrFormSet, ZusatzstelleFormSet,
+    EinsatzTeilnahmeFormSet,
+)
 from .services import assign_running_number, render_html_to_pdf_bytes, send_mail_with_pdf
+
 
 def einsatz_neu(request):
     if request.method == "POST":
-        einsatz = Einsatz()
-        form = EinsatzForm(request.POST, instance=einsatz)
-        person_form = EinsatzPersonForm(request.POST, instance=getattr(einsatz, "person", None))
-        if form.is_valid():
+        e = Einsatz()
+        form = EinsatzForm(request.POST, instance=e)
+        person_form = EinsatzPersonForm(request.POST, prefix="person")
+
+        lw_fs = LoeschwasserFormSet(request.POST, instance=e, prefix="lw")
+        em_fs = EinsatzmittelFormSet(request.POST, instance=e, prefix="em")
+        vf_fs = EinsatzFahrzeugFormSet(request.POST, instance=e, prefix="vf")
+        ab_fs = EinsatzAbrollFormSet(request.POST, instance=e, prefix="ab")
+        an_fs = EinsatzAnhaengerFormSet(request.POST, instance=e, prefix="an")
+        of_fs = EinsatzOrtsfeuerwehrFormSet(request.POST, instance=e, prefix="of")
+        zs_fs = ZusatzstelleFormSet(request.POST, instance=e, prefix="zs")  # neu
+        tn_fs = EinsatzTeilnahmeFormSet(request.POST, instance=e, prefix="tn")
+
+        forms_valid = all([
+            form.is_valid(), person_form.is_valid(),
+            lw_fs.is_valid(), em_fs.is_valid(),
+            vf_fs.is_valid(), ab_fs.is_valid(), an_fs.is_valid(), of_fs.is_valid(),
+            zs_fs.is_valid(),  # neu
+            tn_fs.is_valid(),
+        ])
+
+        if forms_valid:
             with transaction.atomic():
-                einsatz = form.save(commit=False)
-                assign_running_number(einsatz, Einsatz)
-                einsatz.full_clean()
-                einsatz.save()
-                # OneToOne Person
-                person_form.instance = getattr(einsatz, "person", None) or None
-                if person_form.is_valid():
-                    person_obj = person_form.save(commit=False)
-                    person_obj.einsatz = einsatz
-                    person_obj.save()
-                # Formsets
-                lw_formset = LoeschwasserFormSet(request.POST, instance=einsatz, prefix="lw")
-                em_formset = EinsatzmittelFormSet(request.POST, instance=einsatz, prefix="em")
-                if lw_formset.is_valid() and em_formset.is_valid():
-                    lw_formset.save()
-                    em_formset.save()
-                else:
-                    raise ValueError("Fehler in Löschwasser/Einsatzmittel")
-            # PDF erstellen
-            html = render_to_string("einsatz/pdf.html", {"obj": einsatz})
-            pdf_bytes = render_html_to_pdf_bytes(html)
-            # Mail
+                e = form.save(commit=False)
+                assign_running_number(e, type(e))
+                e.full_clean()
+                e.save()
+                form.save_m2m()  # derzeit keine M2M ohne Through mehr im Form
+
+                person = person_form.save(commit=False)
+                person.einsatz = e
+                person.full_clean()
+                person.save()
+
+                lw_fs.instance = e; lw_fs.save()
+                em_fs.instance = e; em_fs.save()
+                vf_fs.instance = e; vf_fs.save()
+                ab_fs.instance = e; ab_fs.save()
+                an_fs.instance = e; an_fs.save()
+                of_fs.instance = e; of_fs.save()
+                zs_fs.instance = e; zs_fs.save()  # neu
+                tn_fs.instance = e; tn_fs.save()
+
+            html = render_to_string("einsatz/pdf.html", {"obj": e})
+            pdf_bytes = render_html_to_pdf_bytes(html, base_url=request.build_absolute_uri("/"))
             subject = "Neue Einsatzliste eingegangen"
             body = "Automatische Nachricht: Eine neue Einsatzliste wurde erfasst."
-            send_mail_with_pdf(subject, body, pdf_bytes, f"Einsatz_{einsatz.nummer_formatiert}.pdf")
-            # Download als Response: hier pragmatisch Redirect auf Detail, wo Download-Link angeboten wird
-            messages.success(request, f"Einsatz {einsatz.nummer_formatiert} gespeichert.")
-            return redirect(reverse("einsatz_detail", args=[einsatz.id]))
+            send_mail_with_pdf(subject, body, pdf_bytes, f"Einsatz_{e.nummer_formatiert}.pdf")
+            messages.success(request, f"Einsatz {e.nummer_formatiert} gespeichert.")
+            return redirect(reverse("einsatz_detail", args=[e.id]))
+        else:
+            return render(request, "einsatz/form.html", {
+                "form": form, "person_form": person_form,
+                "lw_fs": lw_fs, "em_fs": em_fs,
+                "vf_fs": vf_fs, "ab_fs": ab_fs, "an_fs": an_fs, "of_fs": of_fs,
+                "zs_fs": zs_fs,  # neu
+                "tn_fs": tn_fs,
+            }, status=400)
     else:
-        form = EinsatzForm()
-        person_form = EinsatzPersonForm()
-        lw_formset = LoeschwasserFormSet(prefix="lw", instance=Einsatz())
-        em_formset = EinsatzmittelFormSet(prefix="em", instance=Einsatz())
+        e = Einsatz()
+        form = EinsatzForm(instance=e)
+        person_form = EinsatzPersonForm(prefix="person")
+        lw_fs = LoeschwasserFormSet(instance=e, prefix="lw")
+        em_fs = EinsatzmittelFormSet(instance=e, prefix="em")
+        vf_fs = EinsatzFahrzeugFormSet(instance=e, prefix="vf")
+        ab_fs = EinsatzAbrollFormSet(instance=e, prefix="ab")
+        an_fs = EinsatzAnhaengerFormSet(instance=e, prefix="an")
+        of_fs = EinsatzOrtsfeuerwehrFormSet(instance=e, prefix="of")
+        zs_fs = ZusatzstelleFormSet(instance=e, prefix="zs")  # neu
+        tn_fs = EinsatzTeilnahmeFormSet(instance=e, prefix="tn")
+
     return render(request, "einsatz/form.html", {
-        "form": form,
-        "person_form": person_form,
-        "lw_formset": lw_formset,
-        "em_formset": em_formset,
+        "form": form, "person_form": person_form,
+        "lw_fs": lw_fs, "em_fs": em_fs,
+        "vf_fs": vf_fs, "ab_fs": ab_fs, "an_fs": an_fs, "of_fs": of_fs,
+        "zs_fs": zs_fs,  # neu
+        "tn_fs": tn_fs,
     })
 
-def einsatz_detail(request, pk):
+
+def einsatz_detail(request, pk: int):
     obj = get_object_or_404(Einsatz, pk=pk)
     return render(request, "einsatz/detail.html", {"obj": obj})
 
-# HTMX: neue Zeile zu Formset hinzufügen (Client erhöht total_forms und holt ein Row-Fragment)
-from django.forms import formset_factory
+
+def einsatz_pdf(request, pk: int):
+    obj = get_object_or_404(Einsatz, pk=pk)
+    html = render_to_string("einsatz/pdf.html", {"obj": obj})
+    pdf_bytes = render_html_to_pdf_bytes(html)
+    from django.http import HttpResponse
+    resp = HttpResponse(pdf_bytes, content_type="application/pdf")
+    resp["Content-Disposition"] = f'attachment; filename="Einsatz_{obj.nummer_formatiert}.pdf"'
+    return resp
+
+
+# HTMX-Add: liefert eine zusätzliche Zeile je Formset
 def htmx_add_loeschwasser(request):
-    einsatz = Einsatz()  # ungebunden
-    formset = LoeschwasserFormSet(prefix="lw", instance=einsatz)
-    # künstlich eine extra-Form hinzufügen
-    form = formset._construct_form(formset.total_form_count())
+    e = Einsatz()
+    fs = LoeschwasserFormSet(instance=e, prefix="lw")
+    form = fs._construct_form(fs.total_form_count())
     return render(request, "einsatz/_loeschwasser_row.html", {"form": form})
 
 def htmx_add_einsatzmittel(request):
-    einsatz = Einsatz()
-    formset = EinsatzmittelFormSet(prefix="em", instance=einsatz)
-    form = formset._construct_form(formset.total_form_count())
+    e = Einsatz()
+    fs = EinsatzmittelFormSet(instance=e, prefix="em")
+    form = fs._construct_form(fs.total_form_count())
     return render(request, "einsatz/_einsatzmittel_row.html", {"form": form})
+
+def htmx_add_fahrzeug(request):
+    e = Einsatz()
+    fs = EinsatzFahrzeugFormSet(instance=e, prefix="vf")
+    form = fs._construct_form(fs.total_form_count())
+    return render(request, "einsatz/_fahrzeug_row.html", {"form": form})
+
+def htmx_add_abroll(request):
+    e = Einsatz()
+    fs = EinsatzAbrollFormSet(instance=e, prefix="ab")
+    form = fs._construct_form(fs.total_form_count())
+    return render(request, "einsatz/_abroll_row.html", {"form": form})
+
+def htmx_add_anhaenger(request):
+    e = Einsatz()
+    fs = EinsatzAnhaengerFormSet(instance=e, prefix="an")
+    form = fs._construct_form(fs.total_form_count())
+    return render(request, "einsatz/_anhaenger_row.html", {"form": form})
+
+def htmx_add_ortsfeuerwehr(request):
+    e = Einsatz()
+    fs = EinsatzOrtsfeuerwehrFormSet(instance=e, prefix="of")
+    form = fs._construct_form(fs.total_form_count())
+    return render(request, "einsatz/_ortsfeuerwehr_row.html", {"form": form})
+
+def htmx_add_zusatzstelle(request):
+    e = Einsatz()
+    fs = ZusatzstelleFormSet(instance=e, prefix="zs")
+    form = fs._construct_form(fs.total_form_count())
+    return render(request, "einsatz/_zusatzstelle_row.html", {"form": form})
+
+def htmx_add_teilnahme(request):
+    e = Einsatz()
+    fs = EinsatzTeilnahmeFormSet(instance=e, prefix="tn")
+    form = fs._construct_form(fs.total_form_count())
+    return render(request, "einsatz/_teilnahme_row.html", {"form": form})

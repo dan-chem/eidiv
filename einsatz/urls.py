@@ -5,6 +5,15 @@ from . import views
 urlpatterns = [
     path("neu", views.einsatz_neu, name="einsatz_neu"),
     path("<int:pk>", views.einsatz_detail, name="einsatz_detail"),
-    path("htmx/loeschwasser/add", views.htmx_add_loeschwasser, name="htmx_add_loeschwasser"),
-    path("htmx/einsatzmittel/add", views.htmx_add_einsatzmittel, name="htmx_add_einsatzmittel"),
+    path("<int:pk>/pdf", views.einsatz_pdf, name="einsatz_pdf"),
+
+    # HTMX add-row
+    path("htmx/loeschwasser/add", views.htmx_add_loeschwasser, name="einsatz_htmx_add_loeschwasser"),
+    path("htmx/einsatzmittel/add", views.htmx_add_einsatzmittel, name="einsatz_htmx_add_einsatzmittel"),
+    path("htmx/fahrzeug/add", views.htmx_add_fahrzeug, name="einsatz_htmx_add_fahrzeug"),
+    path("htmx/abroll/add", views.htmx_add_abroll, name="einsatz_htmx_add_abroll"),
+    path("htmx/anhaenger/add", views.htmx_add_anhaenger, name="einsatz_htmx_add_anhaenger"),
+    path("htmx/ofw/add", views.htmx_add_ortsfeuerwehr, name="einsatz_htmx_add_ofw"),
+    path("htmx/zusatzstelle/add", views.htmx_add_zusatzstelle, name="einsatz_htmx_add_zusatzstelle"),
+    path("htmx/teilnahme/add", views.htmx_add_teilnahme, name="einsatz_htmx_add_teilnahme"),
 ]

@@ -1,6 +1,3 @@
-from django.db import models
-
-# Create your models here.
 # dienst/models.py
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -15,7 +12,8 @@ class Dienst(models.Model):
     beschreibung = models.TextField(blank=True)
 
     fahrzeuge = models.ManyToManyField(Fahrzeug, through="DienstFahrzeug", blank=True)
-    abrollbehaelter = models.ManyToManyField(Abrollbehaelter, blank=True)  # keine Zusatzfelder
+    # geändert: Through für Abrollbehälter wie beim Einsatz
+    abrollbehaelter = models.ManyToManyField(Abrollbehaelter, through="DienstAbrollbehaelter", blank=True)
     anhaenger = models.ManyToManyField(Anhaenger, through="DienstAnhaenger", blank=True)
     teilnahmen = models.ManyToManyField(Mitglied, through="DienstTeilnahme", related_name="dienst_teilnahmen", blank=True)
 
@@ -40,6 +38,14 @@ class DienstFahrzeug(models.Model):
     class Meta:
         unique_together = [("dienst", "fahrzeug")]
 
+class DienstAbrollbehaelter(models.Model):
+    dienst = models.ForeignKey(Dienst, on_delete=models.CASCADE)
+    abrollbehaelter = models.ForeignKey(Abrollbehaelter, on_delete=models.PROTECT)
+    erforderlich = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = [("dienst", "abrollbehaelter")]
+
 class DienstAnhaenger(models.Model):
     dienst = models.ForeignKey(Dienst, on_delete=models.CASCADE)
     anhaenger = models.ForeignKey(Anhaenger, on_delete=models.PROTECT)
@@ -60,8 +66,6 @@ class DienstTeilnahme(models.Model):
 
     def clean(self):
         if self.agt_minuten is not None and self.agt_minuten < 0:
-            from django.core.exceptions import ValidationError
             raise ValidationError("AGT-Minuten dürfen nicht negativ sein.")
         if self.agt_minuten is not None and not self.mitglied.agt:
-            from django.core.exceptions import ValidationError
             raise ValidationError("AGT-Minuten nur für AGT-Mitglieder erlaubt.")

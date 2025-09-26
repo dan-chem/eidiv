@@ -15,11 +15,6 @@
         {{ form.titel }}
       </div>
       <div>
-        <label class="block text-sm font-medium">Abrollbehälter</label>
-        {{ form.abrollbehaelter }}
-        {# Hinweis: Für Checkbox-Rendering ggf. im Form-Widget auf CheckboxSelectMultiple umstellen #}
-      </div>
-      <div>
         <label class="block text-sm font-medium">Beginn</label>
         {{ form.start_dt }}
       </div>
@@ -110,6 +105,36 @@
     + Zeile hinzufügen
     </button>
   </section>
+
+  <!-- Abrollbehälter -->
+   <section class="bg-white p-4 rounded shadow">
+  <h2 class="font-semibold mb-3">Abrollbehälter</h2>
+  {{ ab_formset.management_form }}
+  <table class="w-full text-sm">
+    <thead>
+      <tr class="text-left border-b">
+        <th class="py-2">Abrollbehälter</th>
+        <th class="py-2" style="width:120px;">erforderlich</th>
+        <th class="py-2" style="width:100px;">Aktion</th>
+      </tr>
+    </thead>
+    <tbody id="ab_tbody">
+      {% for f in ab_formset %}
+        {% include "dienst/_abroll_row.html" with form=f %}
+      {% empty %}
+      {% endfor %}
+    </tbody>
+  </table>
+  <button type="button"
+          class="mt-2 px-3 py-1 border rounded text-sm"
+          hx-get="{% url 'dienst_htmx_add_abroll' %}"
+          hx-target="#ab_tbody"
+          hx-swap="beforeend"
+          data-formset-prefix="ab">
+    + Zeile hinzufügen
+  </button>
+</section>
+
 
   <!-- Teilnahmen -->
   <section class="bg-white p-4 rounded shadow">

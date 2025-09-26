@@ -1,0 +1,8 @@
+<tr class="border-b">
+  <td class="py-1">{{ form.einsatzmittel }}</td>
+  <td class="py-1">{{ form.anzahl }}</td>
+  <td class="py-1">
+    {% if form.instance.pk %}{{ form.DELETE }} löschen{% endif %}
+    {{ form.id }}
+  </td>
+</tr>
