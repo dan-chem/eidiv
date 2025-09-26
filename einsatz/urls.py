@@ -7,6 +7,9 @@ urlpatterns = [
     path("<int:pk>", views.einsatz_detail, name="einsatz_detail"),
     path("<int:pk>/pdf", views.einsatz_pdf, name="einsatz_pdf"),
 
+    path("stichwort/<int:pk>/kategorie", views.stichwort_kategorie_api, name="einsatz_stichwort_kategorie"),
+    path("stichwort/options", views.stichwort_options, name="einsatz_stichwort_options"),
+
     # HTMX add-row
     path("htmx/loeschwasser/add", views.htmx_add_loeschwasser, name="einsatz_htmx_add_loeschwasser"),
     path("htmx/einsatzmittel/add", views.htmx_add_einsatzmittel, name="einsatz_htmx_add_einsatzmittel"),
@@ -16,4 +19,5 @@ urlpatterns = [
     path("htmx/ofw/add", views.htmx_add_ortsfeuerwehr, name="einsatz_htmx_add_ofw"),
     path("htmx/zusatzstelle/add", views.htmx_add_zusatzstelle, name="einsatz_htmx_add_zusatzstelle"),
     path("htmx/teilnahme/add", views.htmx_add_teilnahme, name="einsatz_htmx_add_teilnahme"),
+    
 ]

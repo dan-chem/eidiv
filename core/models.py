@@ -105,9 +105,13 @@ class Einsatzstichwort(models.Model):
     KAT_BRAND = "brand"
     KAT_THL = "thl"
     KAT_SONST = "sonstig"
+    KAT_ABC = "abc"
+    KAT_INFO = "info"
     KATEGORIE_CHOICES = [
         (KAT_BRAND, "Brand"),
         (KAT_THL, "Technische Hilfeleistung"),
+        (KAT_ABC, "ABC-Einsatz"),
+        (KAT_INFO, "Infoeinsatz"),
         (KAT_SONST, "Sonstige"),
     ]
     code = models.CharField(max_length=40, blank=True)

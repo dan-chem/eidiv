@@ -4,6 +4,10 @@ from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
+from django.http import JsonResponse
+from django.http import HttpResponse
+
+from core.models import Einsatzstichwort
 
 from .models import Einsatz
 from .forms import (
@@ -110,6 +114,25 @@ def einsatz_pdf(request, pk: int):
     resp = HttpResponse(pdf_bytes, content_type="application/pdf")
     resp["Content-Disposition"] = f'attachment; filename="Einsatz_{obj.nummer_formatiert}.pdf"'
     return resp
+
+def stichwort_kategorie_api(request, pk: int):
+    try:
+        esw = Einsatzstichwort.objects.get(pk=pk)
+        return JsonResponse({"kategorie": esw.kategorie})
+    except Einsatzstichwort.DoesNotExist:
+        return JsonResponse({"kategorie": "sonstig"})
+
+def stichwort_options(request):
+    # akzeptiere sowohl ?kat=… als auch ?stichwort_kategorie=…
+    kat = request.GET.get("kat") or request.GET.get("stichwort_kategorie")
+    qs = Einsatzstichwort.objects.filter(aktiv=True)
+    if kat:
+        qs = qs.filter(kategorie=kat)
+    # Reine Options-Liste zurückgeben
+    html = ['<option value="">— bitte wählen —</option>']
+    for sw in qs.order_by("bezeichnung"):
+        html.append(f'<option value="{sw.pk}">{sw}</option>')
+    return HttpResponse("\n".join(html), content_type="text/html")
 
 
 # HTMX-Add: liefert eine zusätzliche Zeile je Formset

@@ -6,36 +6,56 @@
   {% csrf_token %}
 
   <!-- Allgemein -->
-  <section class="bg-white p-4 rounded shadow">
-    <h2 class="font-semibold mb-3">Allgemeine Einsatzdaten</h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div>
-        <label class="block text-sm font-medium">Einsatzstichwort</label>
-        {{ form.stichwort }}
-      </div>
-      <div>
-        <label class="block text-sm font-medium">Meldende Stelle</label>
-        {{ form.meldende_stelle }}
-      </div>
-      <div>
-        <label class="block text-sm font-medium">Beginn</label>
-        {{ form.start_dt }}
-      </div>
-      <div>
-        <label class="block text-sm font-medium">Ende</label>
-        {{ form.ende_dt }}
-      </div>
-      <div>
-        <label class="block text-sm font-medium">Einsatzleiter (Mitglied)</label>
-        {{ form.einsatzleiter }}
-      </div>
-      <div>
-        <label class="block text-sm font-medium">Einsatzleiter (Text, extern)</label>
-        {{ form.einsatzleiter_text }}
-      </div>
+<section class="bg-white p-4 rounded shadow">
+  <h2 class="font-semibold mb-3">Allgemeine Einsatzdaten</h2>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div>
+      <label class="block text-sm font-medium">Einsatzkategorie</label>
+      {# Das Form-Feld hat name="stichwort_kategorie". htmx sendet diesen Parameter. #}
+      <select id="id_stichwort_kategorie"
+              name="stichwort_kategorie"
+              class="mt-1 w-full border rounded px-3 py-2"
+              hx-get="{% url 'einsatz_stichwort_options' %}"
+              hx-trigger="change"
+              hx-target="#id_stichwort"
+              hx-swap="innerHTML">
+        {% for val,label in form.fields.stichwort_kategorie.choices %}
+          <option value="{{ val }}" {% if form.stichwort_kategorie.value == val %}selected{% endif %}>
+            {{ label }}
+          </option>
+        {% endfor %}
+      </select>
     </div>
-    {% if form.non_field_errors %}<p class="text-red-600 mt-2">{{ form.non_field_errors }}</p>{% endif %}
-  </section>
+
+    <div>
+      <label class="block text-sm font-medium">Einsatzstichwort</label>
+      {# Das select hat die id "id_stichwort" via Widget; HTMX ersetzt die Optionen (innerHTML) #}
+      {{ form.stichwort }}
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium">Meldende Stelle</label>
+      {{ form.meldende_stelle }}
+    </div>
+    <div>
+      <label class="block text-sm font-medium">Beginn</label>
+      {{ form.start_dt }}
+    </div>
+    <div>
+      <label class="block text-sm font-medium">Ende</label>
+      {{ form.ende_dt }}
+    </div>
+    <div>
+      <label class="block text-sm font-medium">Einsatzleiter (Mitglied)</label>
+      {{ form.einsatzleiter }}
+    </div>
+    <div>
+      <label class="block text-sm font-medium">Einsatzleiter (Text, extern)</label>
+      {{ form.einsatzleiter_text }}
+    </div>
+  </div>
+  {% if form.non_field_errors %}<p class="text-red-600 mt-2">{{ form.non_field_errors }}</p>{% endif %}
+</section>
 
   <!-- Einsatzort -->
   <section class="bg-white p-4 rounded shadow">
@@ -67,7 +87,7 @@
   </section>
 
   <!-- Angaben zum Brand -->
-  <section class="bg-white p-4 rounded shadow">
+  <section id="brand-section" class="bg-white p-4 rounded shadow">
     <h2 class="font-semibold mb-3">Angaben zum Brand</h2>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div><label class="block text-sm font-medium">Brandumfang</label>{{ form.brandumfang }}</div>
@@ -93,7 +113,7 @@
   </section>
 
   <!-- Technische Hilfeleistung -->
-  <section class="bg-white p-4 rounded shadow">
+  <section id="thl-section" class="bg-white p-4 rounded shadow">
     <h2 class="font-semibold mb-3">Angaben zur technischen Hilfeleistung</h2>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div><label class="block text-sm font-medium">Schadensereignis</label>{{ form.schadensereignis }}</div>
@@ -228,4 +248,43 @@
     <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">Speichern</button>
   </div>
 </form>
+
+<script>
+  (function() {
+    const katSelect = document.getElementById("id_stichwort_kategorie");
+    const brand = document.getElementById("brand-section");
+    const thl = document.getElementById("thl-section");
+
+    function hideBoth() {
+      brand?.classList.add("hidden");
+      thl?.classList.add("hidden");
+    }
+    function showBrand() {
+      brand?.classList.remove("hidden");
+      thl?.classList.add("hidden");
+    }
+    function showTHL() {
+      thl?.classList.remove("hidden");
+      brand?.classList.add("hidden");
+    }
+    function updateSectionsByKat() {
+      const kat = (katSelect?.value || "").toLowerCase();
+      if (kat === "brand") {
+        showBrand();
+      } else if (kat === "thl" || kat === "abc") {
+        showTHL();
+      } else if (kat === "info" || kat === "sonstig" || kat === "") {
+        hideBoth();
+      } else {
+        hideBoth();
+      }
+    }
+    if (katSelect) {
+      updateSectionsByKat();            // Initial
+      katSelect.addEventListener("change", updateSectionsByKat);
+    }
+  })();
+</script>
+
+
 {% endblock %}

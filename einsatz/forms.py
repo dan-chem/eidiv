@@ -1,26 +1,36 @@
 # einsatz/forms.py
 from django import forms
 from django.forms import inlineformset_factory
-
+from core.models import Einsatzstichwort
 from .models import (
     Einsatz, EinsatzPerson, EinsatzLoeschwasser, EinsatzEinsatzmittel,
-    EinsatzFahrzeug, EinsatzAbrollbehaelter, EinsatzAnhaenger, EinsatzOrtsfeuerwehr, EinsatzZusatzstelle, 
-    EinsatzTeilnahme
+    EinsatzFahrzeug, EinsatzAbrollbehaelter, EinsatzAnhaenger, EinsatzOrtsfeuerwehr,
+    EinsatzTeilnahme, EinsatzZusatzstelle
 )
 
 class EinsatzForm(forms.ModelForm):
+    stichwort_kategorie = forms.ChoiceField(
+        label="Einsatzkategorie",
+        required=False,
+        choices=[],
+        widget=forms.Select(attrs={"class": "mt-1 w-full border rounded px-3 py-2"}),
+    )
+
     class Meta:
         model = Einsatz
         fields = [
-            "stichwort", "start_dt", "ende_dt",
+            # Reihenfolge: Kategorie vor Stichwort
+            "stichwort",
+            "start_dt", "ende_dt",
             "einsatzleiter", "einsatzleiter_text", "meldende_stelle",
             "objektname", "strasse_hausnr", "plz_ort", "einsatzgemeinde", "landkreis",
             "brandumfang", "brandausbreitung", "brandgut", "brandobjekt",
             "schadensereignis", "personenrettung_typ", "personenrettung_anzahl",
-            "sicherheitswache", "fehlalarm", "sonstige", "einsatzmassnahmen",
+            "sicherheitswache", "fehlalarm", "sonstige",
+            "einsatzmassnahmen",
         ]
         widgets = {
-            "stichwort": forms.Select(attrs={"class": "mt-1 w-full border rounded px-3 py-2"}),
+            "stichwort": forms.Select(attrs={"class": "mt-1 w-full border rounded px-3 py-2", "id": "id_stichwort"}),
             "start_dt": forms.DateTimeInput(attrs={"type": "datetime-local", "class": "mt-1 w-full border rounded px-3 py-2"}),
             "ende_dt": forms.DateTimeInput(attrs={"type": "datetime-local", "class": "mt-1 w-full border rounded px-3 py-2"}),
             "einsatzleiter": forms.Select(attrs={"class": "mt-1 w-full border rounded px-3 py-2"}),
@@ -31,21 +41,44 @@ class EinsatzForm(forms.ModelForm):
             "plz_ort": forms.TextInput(attrs={"class": "mt-1 w-full border rounded px-3 py-2"}),
             "einsatzgemeinde": forms.TextInput(attrs={"class": "mt-1 w-full border rounded px-3 py-2"}),
             "landkreis": forms.TextInput(attrs={"class": "mt-1 w-full border rounded px-3 py-2"}),
-
             "brandumfang": forms.Select(attrs={"class": "mt-1 w-full border rounded px-3 py-2"}),
             "brandausbreitung": forms.Select(attrs={"class": "mt-1 w-full border rounded px-3 py-2"}),
             "brandgut": forms.Select(attrs={"class": "mt-1 w-full border rounded px-3 py-2"}),
             "brandobjekt": forms.Select(attrs={"class": "mt-1 w-full border rounded px-3 py-2"}),
-
             "schadensereignis": forms.Select(attrs={"class": "mt-1 w-full border rounded px-3 py-2"}),
             "personenrettung_typ": forms.Select(attrs={"class": "mt-1 w-full border rounded px-3 py-2"}),
             "personenrettung_anzahl": forms.NumberInput(attrs={"class": "mt-1 w-full border rounded px-3 py-2", "min": 0}),
             "sicherheitswache": forms.Select(attrs={"class": "mt-1 w-full border rounded px-3 py-2"}),
             "fehlalarm": forms.Select(attrs={"class": "mt-1 w-full border rounded px-3 py-2"}),
             "sonstige": forms.Select(attrs={"class": "mt-1 w-full border rounded px-3 py-2"}),
-
             "einsatzmassnahmen": forms.Textarea(attrs={"class": "mt-1 w-full border rounded px-3 py-2", "rows": 6}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Nur aktive Stichworte anzeigen
+        self.fields["stichwort"].queryset = Einsatzstichwort.objects.filter(aktiv=True)
+        # Kategorienauswahl füllen
+        self.fields["stichwort_kategorie"].choices = Einsatzstichwort.KATEGORIE_CHOICES
+        # Initiale Kategorie aus dem (vorhandenen) Stichwort ableiten
+        if self.instance and getattr(self.instance, "stichwort_id", None):
+            self.fields["stichwort_kategorie"].initial = self.instance.stichwort.kategorie
+        else:
+            # Optional: Default "sonstig"
+            # self.fields["stichwort_kategorie"].initial = Einsatzstichwort.KAT_SONST
+            pass
+        # Wenn POST-Daten mit gewählter Kategorie vorhanden sind, kann man optional direkt hier das Stichwort-QuerySet einschränken:
+        kat = self.data.get("stichwort_kategorie") or self.initial.get("stichwort_kategorie")
+        if kat:
+            self.fields["stichwort"].queryset = self.fields["stichwort"].queryset.filter(kategorie=kat)
+
+    def clean(self):
+        cleaned = super().clean()
+        stw = cleaned.get("stichwort")
+        kat = cleaned.get("stichwort_kategorie")
+        if stw and kat and stw.kategorie != kat:
+            self.add_error("stichwort", "Ausgewähltes Stichwort passt nicht zur Einsatzkategorie.")
+        return cleaned
 
 class EinsatzPersonForm(forms.ModelForm):
     class Meta:
