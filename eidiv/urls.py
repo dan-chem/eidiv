@@ -14,9 +14,10 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+# eidiv/urls.py
 from django.contrib import admin
 from django.urls import path, include
-from core.views import index # einfache Startseite
+from core.views import index, api_mitglied_agt  # <- api_mitglied_agt importieren
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -25,3 +26,4 @@ urlpatterns = [
     path('einsatz/', include('einsatz.urls')),
     path('dienst/', include('dienst.urls')),
 ]
+
