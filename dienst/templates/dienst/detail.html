@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="text-xl font-semibold mb-4">Dienst {{ obj.nummer_formatiert }}</h1>
+
+<div class="bg-white p-4 rounded shadow space-y-2">
+  <div><span class="font-medium">Titel:</span> {{ obj.titel }}</div>
+  <div><span class="font-medium">Beginn:</span> {{ obj.start_dt|date:"d.m.Y H:i" }}</div>
+  <div><span class="font-medium">Ende:</span> {{ obj.ende_dt|date:"d.m.Y H:i" }}</div>
+  <div><span class="font-medium">Beschreibung:</span><br>{{ obj.beschreibung|linebreaksbr }}</div>
+</div>
+
+<div class="mt-4 flex gap-2">
+  <a href="{% url 'dienst_pdf' obj.pk %}" class="px-3 py-2 border rounded text-blue-700 border-blue-300 hover:bg-blue-50">PDF herunterladen</a>
+  <a href="/admin/dienst/dienst/{{ obj.pk }}/change/" class="px-3 py-2 border rounded">Im Admin öffnen</a>
+</div>
+{% endblock %}

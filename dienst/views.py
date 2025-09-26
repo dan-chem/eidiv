@@ -66,6 +66,7 @@ class DienstForm(forms.ModelForm):
         widgets = {
             "start_dt": forms.DateTimeInput(attrs={"type": "datetime-local"}),
             "ende_dt": forms.DateTimeInput(attrs={"type": "datetime-local"}),
+            "abrollbehaelter": forms.CheckboxSelectMultiple,  # neu: Checkboxen statt Multiselect
         }
 
 

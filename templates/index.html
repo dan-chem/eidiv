@@ -1,14 +1,8 @@
-<!doctype html>
-<html lang="de">
-<head>
-  <meta charset="utf-8">
-  <title>EiDiV</title>
-</head>
-<body>
-  <h1>EiDiV</h1>
-  <ul>
-    <li><a href="/einsatz/neu">Neuen Einsatz erfassen</a></li>
-    <li><a href="/dienst/neu">Neuen Dienst erfassen</a></li>
-  </ul>
-</body>
-</html>
+{% extends "base.html" %}
+{% block content %}
+<h1 class="text-2xl font-bold mb-4">EiDiV</h1>
+<ul class="list-disc pl-6">
+  <li><a class="text-blue-600 hover:underline" href="/einsatz/neu">Neuen Einsatz erfassen</a></li>
+  <li><a class="text-blue-600 hover:underline" href="/dienst/neu">Neuen Dienst erfassen</a></li>
+</ul>
+{% endblock %}

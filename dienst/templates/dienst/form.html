@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<h1 class="text-xl font-semibold mb-4">Dienst erfassen</h1>
+
+<form method="post" class="space-y-8">
+  {% csrf_token %}
+
+  <!-- Allgemein -->
+  <section class="bg-white p-4 rounded shadow">
+    <h2 class="font-semibold mb-3">Allgemeine Angaben</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label class="block text-sm font-medium">Titel</label>
+        {{ form.titel|as_widget:{"class":"mt-1 w-full border rounded px-3 py-2"} }}
+      </div>
+      <div>
+        <label class="block text-sm font-medium">Abrollbehälter</label>
+        {{ form.abrollbehaelter }}
+        {# Hinweis: Für Checkbox-Rendering ggf. im Form-Widget auf CheckboxSelectMultiple umstellen #}
+      </div>
+      <div>
+        <label class="block text-sm font-medium">Beginn</label>
+        {{ form.start_dt|as_widget:{"class":"mt-1 w-full border rounded px-3 py-2"} }}
+      </div>
+      <div>
+        <label class="block text-sm font-medium">Ende</label>
+        {{ form.ende_dt|as_widget:{"class":"mt-1 w-full border rounded px-3 py-2"} }}
+      </div>
+      <div class="md:col-span-2">
+        <label class="block text-sm font-medium">Beschreibung</label>
+        {{ form.beschreibung|as_widget:{"class":"mt-1 w-full border rounded px-3 py-2"} }}
+      </div>
+    </div>
+    {% if form.non_field_errors %}<p class="text-red-600 mt-2">{{ form.non_field_errors }}</p>{% endif %}
+  </section>
+
+  <!-- Fahrzeuge -->
+  <section class="bg-white p-4 rounded shadow">
+    <h2 class="font-semibold mb-3">Fahrzeuge</h2>
+    {{ fv_formset.management_form }}
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="text-left border-b">
+          <th class="py-2">Fahrzeug</th>
+          <th class="py-2" style="width:120px;">km</th>
+          <th class="py-2" style="width:100px;">Std.</th>
+          <th class="py-2" style="width:100px;">Aktion</th>
+        </tr>
+      </thead>
+      <tbody id="fv_tbody">
+        {% for f in fv_formset %}
+        <tr class="border-b">
+          <td class="py-1">{{ f.fahrzeug }}</td>
+          <td class="py-1">{{ f.kilometer }}</td>
+          <td class="py-1">{{ f.stunden }}</td>
+          <td class="py-1">
+            {% if f.instance.pk %}{{ f.DELETE }} löschen{% endif %}
+            {{ f.id }}
+          </td>
+        </tr>
+        {% empty %}
+        {% endfor %}
+      </tbody>
+    </table>
+    <button type="button"
+            class="mt-2 px-3 py-1 border rounded text-sm"
+            hx-get="{% url 'dienst_htmx_add_fahrzeug' %}"
+            hx-target="#fv_tbody"
+            hx-swap="beforeend"
+            data-formset-prefix="dienstfahrzeug_set">
+      + Zeile hinzufügen
+    </button>
+  </section>
+
+  <!-- Anhänger -->
+  <section class="bg-white p-4 rounded shadow">
+    <h2 class="font-semibold mb-3">Anhänger</h2>
+    {{ an_formset.management_form }}
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="text-left border-b">
+          <th class="py-2">Anhänger</th>
+          <th class="py-2" style="width:120px;">km</th>
+          <th class="py-2" style="width:100px;">Std.</th>
+          <th class="py-2" style="width:100px;">Aktion</th>
+        </tr>
+      </thead>
+      <tbody id="an_tbody">
+        {% for a in an_formset %}
+        <tr class="border-b">
+          <td class="py-1">{{ a.anhaenger }}</td>
+          <td class="py-1">{{ a.kilometer }}</td>
+          <td class="py-1">{{ a.stunden }}</td>
+          <td class="py-1">
+            {% if a.instance.pk %}{{ a.DELETE }} löschen{% endif %}
+            {{ a.id }}
+          </td>
+        </tr>
+        {% empty %}
+        {% endfor %}
+      </tbody>
+    </table>
+    <button type="button"
+            class="mt-2 px-3 py-1 border rounded text-sm"
+            hx-get="{% url 'dienst_htmx_add_anhaenger' %}"
+            hx-target="#an_tbody"
+            hx-swap="beforeend"
+            data-formset-prefix="dienstanhaenger_set">
+      + Zeile hinzufügen
+    </button>
+  </section>
+
+  <!-- Teilnahmen -->
+  <section class="bg-white p-4 rounded shadow">
+    <h2 class="font-semibold mb-3">Teilnahmen</h2>
+    {{ tn_formset.management_form }}
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="text-left border-b">
+          <th class="py-2">Mitglied</th>
+          <th class="py-2">Fahrzeug/Funktion</th>
+          <th class="py-2" style="width:120px;">AGT (Min)</th>
+          <th class="py-2" style="width:100px;">Aktion</th>
+        </tr>
+      </thead>
+      <tbody id="tn_tbody">
+        {% for t in tn_formset %}
+        <tr class="border-b">
+          <td class="py-1">{{ t.mitglied }}</td>
+          <td class="py-1">{{ t.fahrzeug_funktion }}</td>
+          <td class="py-1">{{ t.agt_minuten }}</td>
+          <td class="py-1">
+            {% if t.instance.pk %}{{ t.DELETE }} löschen{% endif %}
+            {{ t.id }}
+          </td>
+        </tr>
+        {% empty %}
+        {% endfor %}
+      </tbody>
+    </table>
+    <button type="button"
+            class="mt-2 px-3 py-1 border rounded text-sm"
+            hx-get="{% url 'dienst_htmx_add_teilnahme' %}"
+            hx-target="#tn_tbody"
+            hx-swap="beforeend"
+            data-formset-prefix="dienstteilnahme_set">
+      + Zeile hinzufügen
+    </button>
+  </section>
+
+  <div>
+    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">Speichern</button>
+  </div>
+</form>
+{% endblock %}

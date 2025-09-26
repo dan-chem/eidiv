@@ -1,0 +1,9 @@
+<tr class="border-b">
+  <td class="py-1">{{ form.mitglied }}</td>
+  <td class="py-1">{{ form.fahrzeug_funktion }}</td>
+  <td class="py-1">{{ form.agt_minuten }}</td>
+  <td class="py-1">
+    {% if form.instance.pk %}{{ form.DELETE }} löschen{% endif %}
+    {{ form.id }}
+  </td>
+</tr>
