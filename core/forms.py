@@ -13,3 +13,9 @@ class StyledAuthenticationForm(AuthenticationForm):
             "class": css,
             "placeholder": "Passwort",
         })
+
+class TeilnahmeAlleMitgliederForm(forms.Form):
+    mitglied_id = forms.IntegerField(widget=forms.HiddenInput)
+    selected = forms.BooleanField(required=False, label="nimmt teil")
+    fahrzeug_funktion = forms.CharField(required=False, max_length=80)
+    agt_minuten = forms.IntegerField(required=False, min_value=0)

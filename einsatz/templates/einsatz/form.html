@@ -233,15 +233,40 @@
   <!-- Personal -->
   <section class="bg-white p-4 rounded shadow">
     <h2 class="font-semibold mb-3">Eingesetztes Personal</h2>
-    {{ tn_fs.management_form }}
+
+    {{ tn_formset.management_form|default_if_none:"" }}
     <table class="w-full text-sm">
-      <thead><tr class="text-left border-b"><th class="py-2">Mitglied</th><th class="py-2">Fahrzeug/Funktion</th><th class="py-2" style="width:120px;">AGT (Min)</th><th class="py-2" style="width:100px;">Aktion</th></tr></thead>
+      <thead>
+        <tr class="text-left border-b">
+          <th class="py-2" style="width:120px;">Teilnahme</th>
+          <th class="py-2">Mitglied</th>
+          <th class="py-2">Fahrzeug/Funktion</th>
+          <th class="py-2" style="width:120px;">AGT (Min)</th>
+        </tr>
+      </thead>
       <tbody id="tn_tbody">
-        {% for f in tn_fs %}{% include "einsatz/_teilnahme_row.html" with form=f %}{% empty %}{% endfor %}
+        {% for form, m in tn_rows %}
+        <tr class="border-b" data-agt="{{ m.agt|yesno:'1,0' }}">
+          <td class="py-1">
+            {{ form.selected }}
+            {{ form.mitglied_id }}
+          </td>
+          <td class="py-1">
+            {{ m.vorname }} {{ m.name }}
+            {% if m.agt %}<span class="ml-2 text-xs px-2 py-0.5 rounded bg-green-100 text-green-800">AGT</span>{% endif %}
+          </td>
+          <td class="py-1">
+            {{ form.fahrzeug_funktion }}
+            {% if form.fahrzeug_funktion.errors %}<div class="text-red-600 text-xs">{{ form.fahrzeug_funktion.errors|join:", " }}</div>{% endif %}
+          </td>
+          <td class="py-1">
+            {{ form.agt_minuten }}
+            {% if form.agt_minuten.errors %}<div class="text-red-600 text-xs">{{ form.agt_minuten.errors|join:", " }}</div>{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
       </tbody>
     </table>
-    <button type="button" class="mt-2 px-3 py-1 border rounded text-sm"
-            hx-get="{% url 'einsatz_htmx_add_teilnahme' %}" hx-target="#tn_tbody" hx-swap="beforeend" data-formset-prefix="tn">+ Zeile hinzufügen</button>
   </section>
 
   <div>
@@ -285,47 +310,40 @@
     }
   })();
 </script>
-<script>
-  // AGT-Minuten nur für AGT-Mitglieder
-  (function() {
-    function updateRow(row) {
-      const sel = row.querySelector('select[name$="-mitglied"]');
-      const minInput = row.querySelector('input[name$="-agt_minuten"]');
-      if (!sel || !minInput) return;
-      const val = sel.value;
-      if (!val) { minInput.disabled = true; minInput.value = ""; return; }
-      fetch(`/api/mitglied/${val}/agt`, {headers: {"X-Requested-With":"XMLHttpRequest"}})
-        .then(r => r.json())
-        .then(data => {
-          const isAGT = !!data.agt;
-          minInput.disabled = !isAGT;
-          if (!isAGT) minInput.value = "";
-        })
-        .catch(() => { minInput.disabled = true; });
-    }
 
-    const tbody = document.getElementById('tn_tbody');
-    function bindRow(row) {
-      const sel = row.querySelector('select[name$="-mitglied"]');
-      if (sel) {
-        sel.addEventListener('change', () => updateRow(row));
-        // initial
-        updateRow(row);
+<script>
+  // Teilnahme-Checkbox steuert Eingaben; AGT-Minuten nur für AGT-Mitglieder
+  (function(){
+    const rows = document.querySelectorAll('#tn_tbody tr');
+    function updateRow(tr){
+      const isAGT = tr.getAttribute('data-agt') === '1';
+      const cb = tr.querySelector('input[type="checkbox"]');
+      const fun = tr.querySelector('input[name$="-fahrzeug_funktion"]');
+      const agt = tr.querySelector('input[name$="-agt_minuten"]');
+      if (!cb || !fun || !agt) return;
+      const checked = cb.checked;
+      // Funktion nur bei Teilnahme
+      fun.disabled = !checked;
+      // AGT-Minuten nur bei Teilnahme und nur für AGT-Mitglieder
+      if (isAGT) {
+        agt.disabled = !checked;
+      } else {
+        agt.value = "";
+        agt.disabled = true;
+      }
+      if (!checked) {
+        fun.value = "";
+        if (isAGT) agt.value = "";
       }
     }
-
-    if (tbody) {
-      tbody.querySelectorAll('tr').forEach(bindRow);
-      document.body.addEventListener('htmx:afterSwap', (ev) => {
-        if (ev.detail.target === tbody) {
-          // neue Zeile wurde angehängt
-          const rows = tbody.querySelectorAll('tr');
-          bindRow(rows[rows.length - 1]);
-        }
-      });
-    }
+    rows.forEach(tr => {
+      const cb = tr.querySelector('input[type="checkbox"]');
+      if (cb) {
+        cb.addEventListener('change', () => updateRow(tr));
+        updateRow(tr); // initial
+      }
+    });
   })();
 </script>
-
 
 {% endblock %}

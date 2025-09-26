@@ -19,6 +19,4 @@ urlpatterns = [
     path("htmx/anhaenger/add", views.htmx_add_anhaenger, name="einsatz_htmx_add_anhaenger"),
     path("htmx/ofw/add", views.htmx_add_ortsfeuerwehr, name="einsatz_htmx_add_ofw"),
     path("htmx/zusatzstelle/add", views.htmx_add_zusatzstelle, name="einsatz_htmx_add_zusatzstelle"),
-    path("htmx/teilnahme/add", views.htmx_add_teilnahme, name="einsatz_htmx_add_teilnahme"),
-    
 ]

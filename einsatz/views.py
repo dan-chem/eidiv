@@ -1,28 +1,33 @@
-# einsatz/views.py
+# einsatz/views.py (Ausschnitt: Imports – optional EinsatzTeilnahmeFormSet entfernen)
 from django.contrib import messages
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
-from django.http import JsonResponse
-from django.http import HttpResponse
+from django.http import JsonResponse, HttpResponse
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.contrib.auth.decorators import login_required
+from django.forms import formset_factory
 
-from core.models import Einsatzstichwort
+from core.forms import TeilnahmeAlleMitgliederForm
+from core.models import Mitglied, Einsatzstichwort
 
-from .models import Einsatz
+from .models import Einsatz, EinsatzTeilnahme
+
 from .forms import (
     EinsatzForm, EinsatzPersonForm,
     LoeschwasserFormSet, EinsatzmittelFormSet,
     EinsatzFahrzeugFormSet, EinsatzAbrollFormSet, EinsatzAnhaengerFormSet, EinsatzOrtsfeuerwehrFormSet, ZusatzstelleFormSet,
-    EinsatzTeilnahmeFormSet,
+    # EinsatzTeilnahmeFormSet,  # <- NICHT MEHR VERWENDEN
 )
 from .services import assign_running_number, render_html_to_pdf_bytes, send_mail_with_pdf
 
+
 @login_required
 def einsatz_neu(request):
+    TeilnahmeFS = formset_factory(TeilnahmeAlleMitgliederForm, extra=0)
+
     if request.method == "POST":
         e = Einsatz()
         form = EinsatzForm(request.POST, instance=e)
@@ -34,39 +39,65 @@ def einsatz_neu(request):
         ab_fs = EinsatzAbrollFormSet(request.POST, instance=e, prefix="ab")
         an_fs = EinsatzAnhaengerFormSet(request.POST, instance=e, prefix="an")
         of_fs = EinsatzOrtsfeuerwehrFormSet(request.POST, instance=e, prefix="of")
-        zs_fs = ZusatzstelleFormSet(request.POST, instance=e, prefix="zs")  # neu
-        tn_fs = EinsatzTeilnahmeFormSet(request.POST, instance=e, prefix="tn")
+        zs_fs = ZusatzstelleFormSet(request.POST, instance=e, prefix="zs")
+
+        # Teilnahme-Formset über alle Mitglieder
+        tn_formset = TeilnahmeFS(request.POST, prefix="tn")
 
         forms_valid = all([
             form.is_valid(), person_form.is_valid(),
             lw_fs.is_valid(), em_fs.is_valid(),
             vf_fs.is_valid(), ab_fs.is_valid(), an_fs.is_valid(), of_fs.is_valid(),
-            zs_fs.is_valid(),  # neu
-            tn_fs.is_valid(),
+            zs_fs.is_valid(),
+            tn_formset.is_valid(),
         ])
 
         if forms_valid:
             with transaction.atomic():
+                # Einsatz speichern
                 e = form.save(commit=False)
                 assign_running_number(e, type(e))
                 e.full_clean()
                 e.save()
-                form.save_m2m()  # derzeit keine M2M ohne Through mehr im Form
+                form.save_m2m()
 
+                # Person (OneToOne)
                 person = person_form.save(commit=False)
                 person.einsatz = e
                 person.full_clean()
                 person.save()
 
+                # Through/M2M
                 lw_fs.instance = e; lw_fs.save()
                 em_fs.instance = e; em_fs.save()
                 vf_fs.instance = e; vf_fs.save()
                 ab_fs.instance = e; ab_fs.save()
                 an_fs.instance = e; an_fs.save()
                 of_fs.instance = e; of_fs.save()
-                zs_fs.instance = e; zs_fs.save()  # neu
-                tn_fs.instance = e; tn_fs.save()
+                zs_fs.instance = e; zs_fs.save()
 
+                # Teilnahmen verarbeiten
+                members = {m.id: m for m in Mitglied.objects.all()}
+                existing = {t.mitglied_id: t for t in e.einsatzteilnahme_set.all()}
+
+                for cd in tn_formset.cleaned_data:
+                    mid = cd["mitglied_id"]
+                    selected = bool(cd.get("selected"))
+                    funk = cd.get("fahrzeug_funktion") or ""
+                    agt_min = cd.get("agt_minuten")
+                    is_agt = bool(members.get(mid) and members[mid].agt)
+
+                    if selected:
+                        obj = existing.get(mid) or EinsatzTeilnahme(einsatz=e, mitglied_id=mid)
+                        obj.fahrzeug_funktion = funk
+                        obj.agt_minuten = agt_min if is_agt and agt_min is not None else None
+                        obj.full_clean()
+                        obj.save()
+                    else:
+                        if mid in existing:
+                            existing[mid].delete()
+
+            # PDF + Mail
             html = render_to_string("einsatz/pdf.html", {"obj": e})
             pdf_bytes = render_html_to_pdf_bytes(html, base_url=request.build_absolute_uri("/"))
             subject = "Neue Einsatzliste eingegangen"
@@ -74,15 +105,21 @@ def einsatz_neu(request):
             send_mail_with_pdf(subject, body, pdf_bytes, f"Einsatz_{e.nummer_formatiert}.pdf")
             messages.success(request, f"Einsatz {e.nummer_formatiert} gespeichert.")
             return redirect(reverse("einsatz_detail", args=[e.id]))
-        else:
-            return render(request, "einsatz/form.html", {
-                "form": form, "person_form": person_form,
-                "lw_fs": lw_fs, "em_fs": em_fs,
-                "vf_fs": vf_fs, "ab_fs": ab_fs, "an_fs": an_fs, "of_fs": of_fs,
-                "zs_fs": zs_fs,  # neu
-                "tn_fs": tn_fs,
-            }, status=400)
+
+        # Bei Fehlern: Rows für Template aufbauen
+        members = list(Mitglied.objects.order_by("name", "vorname"))
+        tn_rows = list(zip(tn_formset.forms, members))
+        return render(request, "einsatz/form.html", {
+            "form": form, "person_form": person_form,
+            "lw_fs": lw_fs, "em_fs": em_fs,
+            "vf_fs": vf_fs, "ab_fs": ab_fs, "an_fs": an_fs, "of_fs": of_fs,
+            "zs_fs": zs_fs,
+            "tn_formset": tn_formset,  # für management_form
+            "tn_rows": tn_rows,
+        }, status=400)
+
     else:
+        # GET: leeres Formular + alle Mitglieder als Zeilen
         e = Einsatz()
         form = EinsatzForm(instance=e)
         person_form = EinsatzPersonForm(prefix="person")
@@ -92,16 +129,27 @@ def einsatz_neu(request):
         ab_fs = EinsatzAbrollFormSet(instance=e, prefix="ab")
         an_fs = EinsatzAnhaengerFormSet(instance=e, prefix="an")
         of_fs = EinsatzOrtsfeuerwehrFormSet(instance=e, prefix="of")
-        zs_fs = ZusatzstelleFormSet(instance=e, prefix="zs")  # neu
-        tn_fs = EinsatzTeilnahmeFormSet(instance=e, prefix="tn")
+        zs_fs = ZusatzstelleFormSet(instance=e, prefix="zs")
+
+        members = list(Mitglied.objects.order_by("name", "vorname"))
+        initial = [{
+            "mitglied_id": m.id,
+            "selected": False,
+            "fahrzeug_funktion": "",
+            "agt_minuten": None,
+        } for m in members]
+        tn_formset = TeilnahmeFS(prefix="tn", initial=initial)
+        tn_rows = list(zip(tn_formset.forms, members))
 
     return render(request, "einsatz/form.html", {
         "form": form, "person_form": person_form,
         "lw_fs": lw_fs, "em_fs": em_fs,
         "vf_fs": vf_fs, "ab_fs": ab_fs, "an_fs": an_fs, "of_fs": of_fs,
-        "zs_fs": zs_fs,  # neu
-        "tn_fs": tn_fs,
+        "zs_fs": zs_fs,
+        "tn_formset": tn_formset,
+        "tn_rows": tn_rows,
     })
+
 
 @login_required
 def einsatz_detail(request, pk: int):
@@ -212,9 +260,3 @@ def htmx_add_zusatzstelle(request):
     form = fs._construct_form(fs.total_form_count())
     return render(request, "einsatz/_zusatzstelle_row.html", {"form": form})
 
-@login_required
-def htmx_add_teilnahme(request):
-    e = Einsatz()
-    fs = EinsatzTeilnahmeFormSet(instance=e, prefix="tn")
-    form = fs._construct_form(fs.total_form_count())
-    return render(request, "einsatz/_teilnahme_row.html", {"form": form})

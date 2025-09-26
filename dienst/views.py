@@ -5,6 +5,7 @@ from django.core.mail import EmailMessage
 from django.db import transaction
 from django.db.models import Max
 from django.forms import inlineformset_factory, NumberInput, Select, TextInput, CheckboxInput
+from django.forms import formset_factory  # neu
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
@@ -14,6 +15,8 @@ from django.db.models import Q
 from django.contrib.auth.decorators import login_required
 
 from core.models import MailEmpfaenger
+from core.models import Mitglied                     # neu
+from core.forms import TeilnahmeAlleMitgliederForm   # neu
 from .models import (
     Dienst,
     DienstFahrzeug,
@@ -58,7 +61,7 @@ def send_mail_with_pdf(subject: str, body_text: str, pdf_bytes: bytes, filename:
 class DienstForm(forms.ModelForm):
     class Meta:
         model = Dienst
-        fields = ["titel", "start_dt", "ende_dt", "beschreibung"]  # abrollbehaelter hier entfernen
+        fields = ["titel", "start_dt", "ende_dt", "beschreibung"]
         widgets = {
             "titel": forms.TextInput(attrs={"class": "mt-1 w-full border rounded px-3 py-2"}),
             "start_dt": forms.DateTimeInput(attrs={"type": "datetime-local", "class": "mt-1 w-full border rounded px-3 py-2"}),
@@ -85,7 +88,7 @@ DienstAbrollFormSet = inlineformset_factory(
     fields=["abrollbehaelter", "erforderlich"],
     widgets={
         "abrollbehaelter": Select(attrs=common),
-        "erforderlich": CheckboxInput(),  # Checkbox erhält Style über globale Defaults
+        "erforderlich": CheckboxInput(),
     },
     extra=0,
     can_delete=True,
@@ -104,23 +107,15 @@ DienstAnhaengerFormSet = inlineformset_factory(
     can_delete=True,
 )
 
-DienstTeilnahmeFormSet = inlineformset_factory(
-    parent_model=Dienst,
-    model=DienstTeilnahme,
-    fields=["mitglied", "fahrzeug_funktion", "agt_minuten"],
-    widgets={
-        "mitglied": Select(attrs=common),
-        "fahrzeug_funktion": TextInput(attrs=common),
-        "agt_minuten": NumberInput(attrs={**common, "min": 0}),
-    },
-    extra=0,
-    can_delete=True,
-)
+# Hinweis: DienstTeilnahmeFormSet wird nicht mehr verwendet (Checkboxliste über alle Mitglieder)
+# DienstTeilnahmeFormSet = inlineformset_factory(...)
 
 # ---------- Views ----------
 
 @login_required
 def dienst_neu(request):
+    TeilnahmeFS = formset_factory(TeilnahmeAlleMitgliederForm, extra=0)
+
     if request.method == "POST":
         d = Dienst()
         form = DienstForm(request.POST, instance=d)
@@ -128,9 +123,19 @@ def dienst_neu(request):
         fv_formset = DienstFahrzeugFormSet(request.POST, instance=d, prefix="fv")
         ab_formset = DienstAbrollFormSet(request.POST, instance=d, prefix="ab")
         an_formset = DienstAnhaengerFormSet(request.POST, instance=d, prefix="an")
-        tn_formset = DienstTeilnahmeFormSet(request.POST, instance=d, prefix="tn")
 
-        if form.is_valid() and fv_formset.is_valid() and ab_formset.is_valid() and an_formset.is_valid() and tn_formset.is_valid():
+        # Teilnahme-Formset über alle Mitglieder
+        tn_formset = TeilnahmeFS(request.POST, prefix="tn")
+
+        forms_valid = (
+            form.is_valid()
+            and fv_formset.is_valid()
+            and ab_formset.is_valid()
+            and an_formset.is_valid()
+            and tn_formset.is_valid()
+        )
+
+        if forms_valid:
             with transaction.atomic():
                 d = form.save(commit=False)
                 assign_running_number(d)
@@ -140,7 +145,27 @@ def dienst_neu(request):
                 fv_formset.instance = d; fv_formset.save()
                 ab_formset.instance = d; ab_formset.save()
                 an_formset.instance = d; an_formset.save()
-                tn_formset.instance = d; tn_formset.save()
+
+                # Teilnahmen verarbeiten
+                members = {m.id: m for m in Mitglied.objects.all()}
+                existing = {t.mitglied_id: t for t in d.dienstteilnahme_set.all()}
+
+                for cd in tn_formset.cleaned_data:
+                    mid = cd["mitglied_id"]
+                    selected = bool(cd.get("selected"))
+                    funk = cd.get("fahrzeug_funktion") or ""
+                    agt_min = cd.get("agt_minuten")
+                    is_agt = bool(members.get(mid) and members[mid].agt)
+
+                    if selected:
+                        obj = existing.get(mid) or DienstTeilnahme(dienst=d, mitglied_id=mid)
+                        obj.fahrzeug_funktion = funk
+                        obj.agt_minuten = agt_min if is_agt and agt_min is not None else None
+                        obj.full_clean()
+                        obj.save()
+                    else:
+                        if mid in existing:
+                            existing[mid].delete()
 
             html = render_to_string("dienst/pdf.html", {"obj": d})
             pdf_bytes = render_html_to_pdf_bytes(html, base_url=request.build_absolute_uri("/"))
@@ -152,12 +177,16 @@ def dienst_neu(request):
             messages.success(request, f"Dienst {d.nummer_formatiert} gespeichert.")
             return redirect(reverse("dienst_detail", args=[d.id]))
         else:
+            # bei Fehlern: Liste der Mitglieder für Anzeige zusammenbauen
+            members = list(Mitglied.objects.order_by("name", "vorname"))
+            tn_rows = list(zip(tn_formset.forms, members))
             return render(request, "dienst/form.html", {
                 "form": form,
                 "fv_formset": fv_formset,
                 "ab_formset": ab_formset,
                 "an_formset": an_formset,
-                "tn_formset": tn_formset,
+                "tn_formset": tn_formset,  # für management_form
+                "tn_rows": tn_rows,
             }, status=400)
     else:
         d = Dienst()
@@ -165,7 +194,16 @@ def dienst_neu(request):
         fv_formset = DienstFahrzeugFormSet(instance=d, prefix="fv")
         ab_formset = DienstAbrollFormSet(instance=d, prefix="ab")
         an_formset = DienstAnhaengerFormSet(instance=d, prefix="an")
-        tn_formset = DienstTeilnahmeFormSet(instance=d, prefix="tn")
+
+        members = list(Mitglied.objects.order_by("name", "vorname"))
+        initial = [{
+            "mitglied_id": m.id,
+            "selected": False,
+            "fahrzeug_funktion": "",
+            "agt_minuten": None,
+        } for m in members]
+        tn_formset = TeilnahmeFS(prefix="tn", initial=initial)
+        tn_rows = list(zip(tn_formset.forms, members))
 
     return render(request, "dienst/form.html", {
         "form": form,
@@ -173,6 +211,7 @@ def dienst_neu(request):
         "ab_formset": ab_formset,
         "an_formset": an_formset,
         "tn_formset": tn_formset,
+        "tn_rows": tn_rows,
     })
 
 @login_required
@@ -199,9 +238,7 @@ def dienst_liste(request):
     if year.isdigit():
         qs = qs.filter(year=int(year))
     if q:
-        qs = qs.filter(
-            Q(titel__icontains=q)
-        )
+        qs = qs.filter(Q(titel__icontains=q))
 
     paginator = Paginator(qs, 20)
     page_obj = paginator.get_page(request.GET.get("page"))
@@ -230,10 +267,3 @@ def htmx_add_anhaenger(request):
     formset = DienstAnhaengerFormSet(instance=d, prefix="an")
     form = formset._construct_form(formset.total_form_count())
     return render(request, "dienst/_anhaenger_row.html", {"form": form})
-
-@login_required
-def htmx_add_teilnahme(request):
-    d = Dienst()
-    formset = DienstTeilnahmeFormSet(instance=d, prefix="tn")
-    form = formset._construct_form(formset.total_form_count())
-    return render(request, "dienst/_teilnahme_row.html", {"form": form})
