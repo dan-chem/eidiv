@@ -135,9 +135,18 @@
   </button>
 </section>
 
-  <!-- Teilnahmen (Checkboxliste aller Mitglieder) -->
+<!-- Teilnahmen (zwei Blöcke: Aktive, Jugendfeuerwehr) -->
 <section class="bg-white p-4 rounded shadow">
   <h2 class="font-semibold mb-3">Teilnehmende</h2>
+
+  <!-- Live-Suche -->
+  <div class="mb-3">
+    <input id="memberFilterDienst"
+           type="search"
+           placeholder="Mitglieder filtern (Name)"
+           class="w-full border rounded px-3 py-2"
+           autocomplete="off">
+  </div>
 
   {{ tn_formset.management_form|default_if_none:"" }}
 
@@ -153,9 +162,14 @@
     </thead>
     <tbody id="tn_tbody_active">
       {% for form, m in tn_rows_active %}
-      <tr class="border-b" data-agt="{{ m.agt|yesno:'1,0' }}">
+      <tr class="border-b"
+          data-agt="{{ m.agt|yesno:'1,0' }}"
+          data-search="{{ m.vorname }} {{ m.name }}">
         <td class="py-1">{{ form.selected }} {{ form.mitglied_id }}</td>
-        <td class="py-1">{{ m.vorname }} {{ m.name }} {% if m.agt %}<span class="ml-2 text-xs px-2 py-0.5 rounded bg-green-100 text-green-800">AGT</span>{% endif %}</td>
+        <td class="py-1">
+          {{ m.vorname }} {{ m.name }}
+          {% if m.agt %}<span class="ml-2 text-xs px-2 py-0.5 rounded bg-green-100 text-green-800">AGT</span>{% endif %}
+        </td>
         <td class="py-1">
           {{ form.fahrzeug_funktion }}
           {% if form.fahrzeug_funktion.errors %}<div class="text-red-600 text-xs">{{ form.fahrzeug_funktion.errors|join:", " }}</div>{% endif %}
@@ -182,9 +196,14 @@
     </thead>
     <tbody id="tn_tbody_jf">
       {% for form, m in tn_rows_jf %}
-      <tr class="border-b" data-agt="{{ m.agt|yesno:'1,0' }}">
+      <tr class="border-b"
+          data-agt="{{ m.agt|yesno:'1,0' }}"
+          data-search="{{ m.vorname }} {{ m.name }}">
         <td class="py-1">{{ form.selected }} {{ form.mitglied_id }}</td>
-        <td class="py-1">{{ m.vorname }} {{ m.name }} {% if m.agt %}<span class="ml-2 text-xs px-2 py-0.5 rounded bg-green-100 text-green-800">AGT</span>{% endif %}</td>
+        <td class="py-1">
+          {{ m.vorname }} {{ m.name }}
+          {% if m.agt %}<span class="ml-2 text-xs px-2 py-0.5 rounded bg-green-100 text-green-800">AGT</span>{% endif %}
+        </td>
         <td class="py-1">
           {{ form.fahrzeug_funktion }}
           {% if form.fahrzeug_funktion.errors %}<div class="text-red-600 text-xs">{{ form.fahrzeug_funktion.errors|join:", " }}</div>{% endif %}
@@ -206,6 +225,7 @@
 </form>
 
 <script>
+  // Checkbox-Logik wie gehabt
   (function(){
     const rows = document.querySelectorAll('#tn_tbody_active tr, #tn_tbody_jf tr');
     function updateRow(tr){
@@ -234,6 +254,29 @@
         updateRow(tr);
       }
     });
+  })();
+
+  // Live-Suche über beide Tabellen
+  (function(){
+    const q = document.getElementById('memberFilterDienst');
+    const containers = ['tn_tbody_active', 'tn_tbody_jf']
+      .map(id => document.getElementById(id))
+      .filter(Boolean);
+
+    function filterRows(){
+      const term = (q.value || '').trim().toLowerCase();
+      containers.forEach(tb => {
+        tb.querySelectorAll('tr').forEach(tr => {
+          const hay = (tr.dataset.search || '').toLowerCase();
+          const show = !term || hay.includes(term);
+          tr.style.display = show ? '' : 'none';
+        });
+      });
+    }
+    if (q) {
+      q.addEventListener('input', filterRows);
+      filterRows();
+    }
   })();
 </script>
 
