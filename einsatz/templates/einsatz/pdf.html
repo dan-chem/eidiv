@@ -148,7 +148,7 @@
       {% for t in obj.einsatzteilnahme_set.all %}
         {% if not t.mitglied.jugendfeuerwehr %}
           <tr>
-            <td>{{ t.mitglied.vorname }} {{ t.mitglied.name }}{% if t.mitglied.agt %} (AGT){% endif %}</td>
+            <td>{{ t.mitglied.name }}, {{ t.mitglied.vorname }}{% if t.mitglied.agt %} (AGT){% endif %}</td>
             <td>{{ t.fahrzeug_funktion|default:"—" }}</td>
             <td style="text-align:right;">{{ t.agt_minuten|default:"—" }}</td>
           </tr>
@@ -171,7 +171,7 @@
       {% for t in obj.einsatzteilnahme_set.all %}
         {% if t.mitglied.jugendfeuerwehr %}
           <tr>
-            <td>{{ t.mitglied.vorname }} {{ t.mitglied.name }}{% if t.mitglied.agt %} (AGT){% endif %}</td>
+            <td>{{ t.mitglied.name }}, {{ t.mitglied.vorname }}{% if t.mitglied.agt %} (AGT){% endif %}</td>
             <td>{{ t.fahrzeug_funktion|default:"—" }}</td>
             <td style="text-align:right;">{{ t.agt_minuten|default:"—" }}</td>
           </tr>

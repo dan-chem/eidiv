@@ -208,6 +208,7 @@ class EinsatzTeilnahme(models.Model):
 
     class Meta:
         unique_together = [("einsatz", "mitglied")]
+        ordering = ["mitglied__name", "mitglied__vorname"]
 
     def clean(self):
         if self.agt_minuten is not None and self.agt_minuten < 0:
