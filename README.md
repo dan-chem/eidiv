@@ -11,6 +11,7 @@ python -m pip install Django
 pip install --upgrade pip setuptools wheel
 sudo apt-get install -y libcairo2 libpango-1.0-0 libgdk-pixbuf2.0-0 libffi-dev shared-mime-info fonts-dejavu fonts-liberation libpangoft2-1.0-0
 pip install weasyprint
+pip install python-dotenv
 
 python manage.py createsuperuser
 

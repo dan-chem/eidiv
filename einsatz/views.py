@@ -99,14 +99,18 @@ def einsatz_neu(request):
 
             html = render_to_string("einsatz/pdf.html", {"obj": e})
             pdf_bytes = render_html_to_pdf_bytes(html, base_url=request.build_absolute_uri("/"))
-            send_mail_with_pdf_to_active(
-                subject="Neue Einsatzliste eingegangen",
-                body_text="Automatische Nachricht: Eine neue Einsatzliste wurde erfasst.",
-                pdf_bytes=pdf_bytes,
-                filename=f"Einsatz_{e.nummer_formatiert}.pdf",
-                fail_silently=not settings.DEBUG,
-            )
-            messages.success(request, f"Einsatz {e.nummer_formatiert} gespeichert.")
+            try:
+                send_mail_with_pdf_to_active(
+                    subject="Neue Einsatzliste eingegangen",
+                    body_text="Automatische Nachricht: Eine neue Einsatzliste wurde erfasst.",
+                    pdf_bytes=pdf_bytes,
+                    filename=f"Einsatz_{e.nummer_formatiert}.pdf",
+                    fail_silently=False,  # Fehler explizit fangen
+                )
+            except Exception:
+                import logging
+                logging.getLogger(__name__).exception("Mailversand Einsatz %s fehlgeschlagen", e.nummer_formatiert)
+                messages.warning(request, "Einsatz gespeichert, aber E-Mail-Versand fehlgeschlagen. Bitte Admin informieren.")
             return redirect(reverse("einsatz_detail", args=[e.id]))
         else:
             # Sortiert nach Nachname, Vorname; aktive oben, JF unten

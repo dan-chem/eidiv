@@ -156,14 +156,18 @@ def dienst_neu(request):
 
             html = render_to_string("dienst/pdf.html", {"obj": d})
             pdf_bytes = render_html_to_pdf_bytes(html, base_url=request.build_absolute_uri("/"))
-            send_mail_with_pdf_to_active(
-                subject="Neue Dienstliste eingegangen",
-                body_text="Automatische Nachricht: Eine neue Dienstliste wurde erfasst.",
-                pdf_bytes=pdf_bytes,
-                filename=f"Dienst_{d.nummer_formatiert}.pdf",
-                fail_silently=not settings.DEBUG,
-            )
-            messages.success(request, f"Dienst {d.nummer_formatiert} gespeichert.")
+            try:
+                send_mail_with_pdf_to_active(
+                    subject="Neue Dienstliste eingegangen",
+                    body_text="Automatische Nachricht: Eine neue Dienstliste wurde erfasst.",
+                    pdf_bytes=pdf_bytes,
+                    filename=f"Dienst_{d.nummer_formatiert}.pdf",
+                    fail_silently=False,
+                )
+            except Exception:
+                import logging
+                logging.getLogger(__name__).exception("Mailversand Dienst %s fehlgeschlagen", d.nummer_formatiert)
+                messages.warning(request, "Dienst gespeichert, aber E-Mail-Versand fehlgeschlagen. Bitte Admin informieren.")
             return redirect(reverse("dienst_detail", args=[d.id]))
         else:
             members_active = list(Mitglied.objects.filter(jugendfeuerwehr=False).order_by("name", "vorname"))

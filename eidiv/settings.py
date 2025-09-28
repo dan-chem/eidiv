@@ -11,24 +11,27 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+import os
+from dotenv import load_dotenv
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+# Projektbasis ermitteln und .env laden
 BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / ".env")
 
+# Sicherheit
+SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-...)")  # optional später aus .env holen
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
+# Debug aus .env (Default: 1 = an)
+DEBUG = os.environ.get("DEBUG", "1") == "1"
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-+)w-lv0dq@ohp#d3nc6@f08u4z2b%h81gx(as1=t0_j)1wa=0c'
+# Hosts (im Prod-Betrieb über .env steuern, z. B. ALLOWED_HOSTS="localhost,127.0.0.1")
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "").split(",") if not DEBUG else []
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# Static
+STATIC_URL = "static/"
+STATICFILES_DIRS = [BASE_DIR / "static"]
 
-# Für Produktion (DEBUG=False) zusätzlich:
-# STATIC_ROOT = BASE_DIR / 'staticfiles'
-
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["127.0.0.1"]
 
 
 # Application definition
@@ -117,17 +120,6 @@ USE_I18N = True
 
 USE_TZ = True
 
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.2/howto/static-files/
-
-STATIC_URL = 'static/'
-
-BASE_DIR = Path(__file__).resolve().parent.parent
-STATICFILES_DIRS = [
-    BASE_DIR / 'static',  # <-- wichtig, wenn du projekt/static nutzt
-]
-
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
@@ -136,10 +128,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'index'
 LOGOUT_REDIRECT_URL = 'index'
-
-import os
-
-DEBUG = os.environ.get("DEBUG", "1") == "1"
 
 # E-Mail: Defaults
 DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "eidiv@localhost")
