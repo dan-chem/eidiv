@@ -161,24 +161,23 @@
       </tr>
     </thead>
     <tbody id="tn_tbody_active">
-      {% for form, m in tn_rows_active %}
-      <tr class="border-b"
-          data-agt="{{ m.agt|yesno:'1,0' }}"
-          data-search="{{ m.vorname }} {{ m.name }}">
-        <td class="py-1">{{ form.selected }} {{ form.mitglied_id }}</td>
-        <td class="py-1">
-          {{ m.vorname }} {{ m.name }}
-          {% if m.agt %}<span class="ml-2 text-xs px-2 py-0.5 rounded bg-green-100 text-green-800">AGT</span>{% endif %}
-        </td>
-        <td class="py-1">
-          {{ form.fahrzeug_funktion }}
-          {% if form.fahrzeug_funktion.errors %}<div class="text-red-600 text-xs">{{ form.fahrzeug_funktion.errors|join:", " }}</div>{% endif %}
-        </td>
-        <td class="py-1">
-          {{ form.agt_minuten }}
-          {% if form.agt_minuten.errors %}<div class="text-red-600 text-xs">{{ form.agt_minuten.errors|join:", " }}</div>{% endif %}
-        </td>
-      </tr>
+      {% for row in tn_rows_active %}
+        {% if row.show_initial %}
+          <tr class="bg-gray-50">
+            <td colspan="4" class="py-1 font-semibold">{{ row.initial }}</td>
+          </tr>
+        {% endif %}
+        <tr class="border-b"
+            data-agt="{{ row.m.agt|yesno:'1,0' }}"
+            data-search="{{ row.m.name }}, {{ row.m.vorname }} {{ row.m.vorname }} {{ row.m.name }}">
+          <td class="py-1">{{ row.form.selected }} {{ row.form.mitglied_id }}</td>
+          <td class="py-1">
+            {{ row.m.name }}, {{ row.m.vorname }}
+            {% if row.m.agt %}<span class="ml-2 text-xs px-2 py-0.5 rounded bg-green-100 text-green-800">AGT</span>{% endif %}
+          </td>
+          <td class="py-1">{{ row.form.fahrzeug_funktion }}{% if row.form.fahrzeug_funktion.errors %}<div class="text-red-600 text-xs">{{ row.form.fahrzeug_funktion.errors|join:", " }}</div>{% endif %}</td>
+          <td class="py-1">{{ row.form.agt_minuten }}{% if row.form.agt_minuten.errors %}<div class="text-red-600 text-xs">{{ row.form.agt_minuten.errors|join:", " }}</div>{% endif %}</td>
+        </tr>
       {% endfor %}
     </tbody>
   </table>
@@ -195,24 +194,23 @@
       </tr>
     </thead>
     <tbody id="tn_tbody_jf">
-      {% for form, m in tn_rows_jf %}
-      <tr class="border-b"
-          data-agt="{{ m.agt|yesno:'1,0' }}"
-          data-search="{{ m.vorname }} {{ m.name }}">
-        <td class="py-1">{{ form.selected }} {{ form.mitglied_id }}</td>
-        <td class="py-1">
-          {{ m.vorname }} {{ m.name }}
-          {% if m.agt %}<span class="ml-2 text-xs px-2 py-0.5 rounded bg-green-100 text-green-800">AGT</span>{% endif %}
-        </td>
-        <td class="py-1">
-          {{ form.fahrzeug_funktion }}
-          {% if form.fahrzeug_funktion.errors %}<div class="text-red-600 text-xs">{{ form.fahrzeug_funktion.errors|join:", " }}</div>{% endif %}
-        </td>
-        <td class="py-1">
-          {{ form.agt_minuten }}
-          {% if form.agt_minuten.errors %}<div class="text-red-600 text-xs">{{ form.agt_minuten.errors|join:", " }}</div>{% endif %}
-        </td>
-      </tr>
+      {% for row in tn_rows_jf %}
+        {% if row.show_initial %}
+          <tr class="bg-gray-50">
+            <td colspan="4" class="py-1 font-semibold">{{ row.initial }}</td>
+          </tr>
+        {% endif %}
+        <tr class="border-b"
+            data-agt="{{ row.m.agt|yesno:'1,0' }}"
+            data-search="{{ row.m.name }}, {{ row.m.vorname }} {{ row.m.vorname }} {{ row.m.name }}">
+          <td class="py-1">{{ row.form.selected }} {{ row.form.mitglied_id }}</td>
+          <td class="py-1">
+            {{ row.m.name }}, {{ row.m.vorname }}
+            {% if row.m.agt %}<span class="ml-2 text-xs px-2 py-0.5 rounded bg-green-100 text-green-800">AGT</span>{% endif %}
+          </td>
+          <td class="py-1">{{ row.form.fahrzeug_funktion }}{% if row.form.fahrzeug_funktion.errors %}<div class="text-red-600 text-xs">{{ row.form.fahrzeug_funktion.errors|join:", " }}</div>{% endif %}</td>
+          <td class="py-1">{{ row.form.agt_minuten }}{% if row.form.agt_minuten.errors %}<div class="text-red-600 text-xs">{{ row.form.agt_minuten.errors|join:", " }}</div>{% endif %}</td>
+        </tr>
       {% endfor %}
     </tbody>
   </table>
@@ -256,27 +254,20 @@
     });
   })();
 
-  // Live-Suche über beide Tabellen
+  // Live-Suche nur echte Datenzeilen filtern
   (function(){
     const q = document.getElementById('memberFilterDienst');
-    const containers = ['tn_tbody_active', 'tn_tbody_jf']
-      .map(id => document.getElementById(id))
-      .filter(Boolean);
-
+    const containers = ['tn_tbody_active', 'tn_tbody_jf'].map(id => document.getElementById(id)).filter(Boolean);
     function filterRows(){
-      const term = (q.value || '').trim().toLowerCase();
+      const term = (q?.value || '').trim().toLowerCase();
       containers.forEach(tb => {
-        tb.querySelectorAll('tr').forEach(tr => {
+        tb.querySelectorAll('tr[data-search]').forEach(tr => {
           const hay = (tr.dataset.search || '').toLowerCase();
-          const show = !term || hay.includes(term);
-          tr.style.display = show ? '' : 'none';
+          tr.style.display = (!term || hay.includes(term)) ? '' : 'none';
         });
       });
     }
-    if (q) {
-      q.addEventListener('input', filterRows);
-      filterRows();
-    }
+    if (q) { q.addEventListener('input', filterRows); filterRows(); }
   })();
 </script>
 

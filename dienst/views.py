@@ -57,6 +57,16 @@ def send_mail_with_pdf(subject: str, body_text: str, pdf_bytes: bytes, filename:
     msg.attach(filename, pdf_bytes, "application/pdf")
     return msg.send(fail_silently=True)
 
+def _build_grouped_rows(forms, members):
+    rows = []
+    prev = None
+    for f, m in zip(forms, members):
+        initial = (m.name[:1] or "").upper()
+        show_initial = initial != prev
+        rows.append({"form": f, "m": m, "initial": initial, "show_initial": show_initial})
+        prev = initial
+    return rows
+
 # ---------- Forms / Formsets ----------
 
 class DienstForm(forms.ModelForm):
@@ -160,11 +170,9 @@ def dienst_neu(request):
         else:
             members_active = list(Mitglied.objects.filter(jugendfeuerwehr=False).order_by("name", "vorname"))
             members_jf = list(Mitglied.objects.filter(jugendfeuerwehr=True).order_by("name", "vorname"))
-            members = members_active + members_jf
-            tn_rows_active, tn_rows_jf = [], []
-            for f, m in zip(tn_formset.forms, members):
-                (tn_rows_jf if m.jugendfeuerwehr else tn_rows_active).append((f, m))
-
+            total_active = len(members_active)
+            tn_rows_active = _build_grouped_rows(tn_formset.forms[:total_active], members_active)
+            tn_rows_jf = _build_grouped_rows(tn_formset.forms[total_active:], members_jf)
             return render(request, "dienst/form.html", {
                 "form": form,
                 "fv_formset": fv_formset, "ab_formset": ab_formset, "an_formset": an_formset,
@@ -185,10 +193,11 @@ def dienst_neu(request):
         initial = [{
             "mitglied_id": m.id, "selected": False, "fahrzeug_funktion": "", "agt_minuten": None
         } for m in members]
-        TeilnahmeFS = formset_factory(TeilnahmeAlleMitgliederForm, extra=0)
         tn_formset = TeilnahmeFS(prefix="tn", initial=initial)
-        tn_rows_active = list(zip(tn_formset.forms[:len(members_active)], members_active))
-        tn_rows_jf = list(zip(tn_formset.forms[len(members_active):], members_jf))
+
+        total_active = len(members_active)
+        tn_rows_active = _build_grouped_rows(tn_formset.forms[:total_active], members_active)
+        tn_rows_jf = _build_grouped_rows(tn_formset.forms[total_active:], members_jf)
 
     return render(request, "dienst/form.html", {
         "form": form,
