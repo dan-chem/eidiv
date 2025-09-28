@@ -5,43 +5,96 @@
   <title>EiDiV</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <!-- Tailwind (mit Forms-Plugin) -->
+<script>
+  tailwind = undefined;
+</script>
 <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
 
+<script>
+  // kleine Theme-Erweiterung (optionale Markenfarben)
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          brand: {
+            50:  '#eff6ff',
+            100: '#dbeafe',
+            200: '#bfdbfe',
+            600: '#2563eb',
+            700: '#1d4ed8',
+          }
+        }
+      }
+    }
+  }
+</script>
+
 <style>
-  /* Globale, robuste Formular-Defaults (wirken auch ohne spezielle Klassen) */
-  input[type="text"],
-  input[type="number"],
-  input[type="email"],
-  input[type="password"],
-  input[type="datetime-local"],
-  input[type="date"],
-  input[type="time"],
-  select,
-  textarea {
-    border: 1px solid #d1d5db; /* gray-300 */
-    border-radius: 0.375rem;    /* rounded-md */
-    padding: 0.5rem 0.75rem;    /* px-3 py-2 */
-    background-color: #fff;
+  :root{
+    --brand-50:#eff6ff;
+    --brand-100:#dbeafe;
+    --brand-200:#bfdbfe;
+    --brand-600:#2563eb;
+    --brand-700:#1d4ed8;
+
+    --muted-50:#f8fafc;    /* slate-50 */
+    --muted-100:#f1f5f9;   /* slate-100 */
+    --muted-200:#e2e8f0;   /* slate-200 */
+    --muted-600:#475569;   /* slate-600 */
+    --ok-50:#dcfce7;       /* green-50 */
+    --ok-700:#166534;      /* green-700 */
+    --info-50:#e0f2fe;     /* sky-50 */
+    --info-700:#075985;    /* sky-700 */
   }
-  input:focus,
-  select:focus,
-  textarea:focus {
+
+  body { background-color: var(--muted-50); }
+
+  /* Karten-Optik für Abschnitte (alle vorhandenen .bg-white.p-4.rounded.shadow) */
+  section.bg-white.p-4.rounded.shadow {
+    border-left: 4px solid var(--brand-100);
+  }
+  section.bg-white.p-4.rounded.shadow > h2 {
+    color: var(--brand-700);
+    display: flex; align-items: center; gap: .5rem;
+  }
+  section.bg-white.p-4.rounded.shadow > h2::before {
+    content: "";
+    width: .5rem; height: .5rem; border-radius: 9999px;
+    background: var(--brand-600); opacity: .15;
+    display: inline-block;
+  }
+
+  /* Tabellen: dezente Kopfzeile + Zebra */
+  table thead tr { background: var(--muted-100); }
+  table thead th { color: var(--muted-600); font-weight: 600; }
+  table tbody tr:nth-child(even) { background: #ffffff; }
+  table tbody tr:nth-child(odd) { background: #fcfcfd; }
+
+  /* Fokus auf Inputs in Markenfarbe */
+  input:focus, select:focus, textarea:focus {
     outline: none;
-    border-color: #3b82f6;      /* blue-500 */
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+    border-color: var(--brand-600) !important;
+    box-shadow: 0 0 0 3px rgba(37,99,235,.2);
   }
-  /* Checkbox/Radio etwas hervorheben */
-  input[type="checkbox"],
-  input[type="radio"] {
-    width: 1rem; height: 1rem;
-    accent-color: #2563eb; /* blue-600 */
+
+  /* Badges */
+  .badge {
+    display: inline-block;
+    font-size: .75rem;
+    line-height: 1rem;
+    padding: 2px 8px;
+    border-radius: .375rem;
+    font-weight: 600;
+    vertical-align: middle;
   }
-  label {
-    display: block;
-    font-size: 0.875rem;
-    font-weight: 500;
-    margin-bottom: 0.25rem;
-  }
+  .badge-agt { background: var(--ok-50); color: var(--ok-700); }
+  .badge-jf  { background: var(--info-50); color: var(--info-700); }
+
+  /* Buttons (optional, falls du einheitliche Klassen möchtest) */
+  .btn       { padding: .5rem .75rem; border-radius: .375rem; font-weight: 600; }
+  .btn-primary { background: var(--brand-600); color:#fff; }
+  .btn-primary:hover { background: var(--brand-700); }
+  .btn-ghost { color: var(--brand-700); }
 </style>
   <script src="https://unpkg.com/htmx.org@1.9.12"></script>
 </head>

@@ -206,7 +206,7 @@
           <td class="py-1">{{ row.form.selected }} {{ row.form.mitglied_id }}</td>
           <td class="py-1">
             {{ row.m.name }}, {{ row.m.vorname }}
-            {% if row.m.agt %}<span class="ml-2 text-xs px-2 py-0.5 rounded bg-green-100 text-green-800">AGT</span>{% endif %}
+            {% if row.m.agt %}<span class="badge badge-agt ml-2">AGT</span>{% endif %}
           </td>
           <td class="py-1">{{ row.form.fahrzeug_funktion }}{% if row.form.fahrzeug_funktion.errors %}<div class="text-red-600 text-xs">{{ row.form.fahrzeug_funktion.errors|join:", " }}</div>{% endif %}</td>
           <td class="py-1">{{ row.form.agt_minuten }}{% if row.form.agt_minuten.errors %}<div class="text-red-600 text-xs">{{ row.form.agt_minuten.errors|join:", " }}</div>{% endif %}</td>

@@ -4,6 +4,22 @@
   <meta charset="utf-8">
   <title>Einsatz {{ obj.nummer_formatiert }}</title>
   <link rel="stylesheet" href="/static/pdfs/print.css">
+  <style>
+  :root{
+    --muted-100:#f1f5f9;
+    --muted-600:#475569;
+    --ok-50:#dcfce7;
+    --ok-700:#166534;
+  }
+  h2 { color: #0f172a; margin: 0 0 6px; }
+  h3 { color: #0f172a; margin: 8px 0 4px; }
+  table { width: 100%; border-collapse: collapse; }
+  thead tr { background: var(--muted-100); }
+  thead th { color: var(--muted-600); text-align: left; padding: 4px 6px; }
+  tbody td { padding: 4px 6px; vertical-align: top; }
+  .badge { display:inline-block; padding:2px 6px; font-size:10px; border-radius:4px; font-weight:600; }
+  .badge-agt { background: var(--ok-50); color: var(--ok-700); }
+</style>
 </head>
 <body>
 <header id="doc-header">
@@ -148,7 +164,7 @@
       {% for t in obj.einsatzteilnahme_set.all %}
         {% if not t.mitglied.jugendfeuerwehr %}
           <tr>
-            <td>{{ t.mitglied.name }}, {{ t.mitglied.vorname }}{% if t.mitglied.agt %} (AGT){% endif %}</td>
+            <td>{{ t.mitglied.name }}, {{ t.mitglied.vorname }}{% if t.mitglied.agt %} <span class="badge badge-agt">AGT</span>{% endif %}</td>
             <td>{{ t.fahrzeug_funktion|default:"—" }}</td>
             <td style="text-align:right;">{{ t.agt_minuten|default:"—" }}</td>
           </tr>
@@ -171,7 +187,7 @@
       {% for t in obj.einsatzteilnahme_set.all %}
         {% if t.mitglied.jugendfeuerwehr %}
           <tr>
-            <td>{{ t.mitglied.name }}, {{ t.mitglied.vorname }}{% if t.mitglied.agt %} (AGT){% endif %}</td>
+            <td>{{ t.mitglied.name }}, {{ t.mitglied.vorname }}{% if t.mitglied.agt %} <span class="badge badge-agt">AGT</span>{% endif %}</td>
             <td>{{ t.fahrzeug_funktion|default:"—" }}</td>
             <td style="text-align:right;">{{ t.agt_minuten|default:"—" }}</td>
           </tr>
