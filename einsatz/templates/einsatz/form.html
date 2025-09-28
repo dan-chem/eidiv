@@ -271,7 +271,12 @@
             {% if row.m.agt %}<span class="ml-2 text-xs px-2 py-0.5 rounded bg-green-100 text-green-800">AGT</span>{% endif %}
           </td>
           <td class="py-1">{{ row.form.fahrzeug_funktion }}{% if row.form.fahrzeug_funktion.errors %}<div class="text-red-600 text-xs">{{ row.form.fahrzeug_funktion.errors|join:", " }}</div>{% endif %}</td>
-          <td class="py-1">{{ row.form.agt_minuten }}{% if row.form.agt_minuten.errors %}<div class="text-red-600 text-xs">{{ row.form.agt_minuten.errors|join:", " }}</div>{% endif %}</td>
+          <td class="py-1 agt-cell">
+            {{ row.form.agt_minuten }}
+            {% if row.form.agt_minuten.errors %}
+              <div class="text-red-600 text-xs">{{ row.form.agt_minuten.errors|join:", " }}</div>
+            {% endif %}
+          </td>
         </tr>
       {% endfor %}
     </tbody>
@@ -358,23 +363,35 @@
 <script>
   // Teilnahme-Checkbox steuert Eingaben; AGT-Minuten nur für AGT-Mitglieder
   (function(){
-    const rows = document.querySelectorAll('#tn_tbody_active tr, #tn_tbody_jf tr');
+    const rows = document.querySelectorAll('#tn_tbody_active tr[data-search], #tn_tbody_jf tr[data-search]');
     function updateRow(tr){
       const isAGT = tr.getAttribute('data-agt') === '1';
       const cb = tr.querySelector('input[type="checkbox"]');
       const fun = tr.querySelector('input[name$="-fahrzeug_funktion"]');
       const agt = tr.querySelector('input[name$="-agt_minuten"]');
-      if (!cb || !fun || !agt) return;
+      const agtTd = agt ? agt.closest('td') : null;
+      if (!cb || !fun || !agt || !agtTd) return;
+
       const checked = cb.checked;
+
+      // Fahrzeug/Funktion nur bei Teilnahme
       fun.disabled = !checked;
+
+      // AGT-Minuten:
       if (isAGT) {
+        // AGT-Mitglied → Feld nur bei Teilnahme aktiv, keine starke Ausgrauung
         agt.disabled = !checked;
+        agtTd.classList.remove('agt-off');
       } else {
+        // KEIN AGT → Feld immer disabled und deutlich ausgegraut
         agt.value = "";
         agt.disabled = true;
+        agtTd.classList.add('agt-off');
       }
+
       if (!checked) {
         fun.value = "";
+        // bei AGT lassen wir agt leer, aber keine agt-off Markierung (nur Nicht-AGT ist "deutlich" grau)
         if (isAGT) agt.value = "";
       }
     }
@@ -382,7 +399,7 @@
       const cb = tr.querySelector('input[type="checkbox"]');
       if (cb) {
         cb.addEventListener('change', () => updateRow(tr));
-        updateRow(tr);
+        updateRow(tr); // initial
       }
     });
   })();

@@ -209,7 +209,12 @@
             {% if row.m.agt %}<span class="badge badge-agt ml-2">AGT</span>{% endif %}
           </td>
           <td class="py-1">{{ row.form.fahrzeug_funktion }}{% if row.form.fahrzeug_funktion.errors %}<div class="text-red-600 text-xs">{{ row.form.fahrzeug_funktion.errors|join:", " }}</div>{% endif %}</td>
-          <td class="py-1">{{ row.form.agt_minuten }}{% if row.form.agt_minuten.errors %}<div class="text-red-600 text-xs">{{ row.form.agt_minuten.errors|join:", " }}</div>{% endif %}</td>
+          <td class="py-1 agt-cell">
+            {{ row.form.agt_minuten }}
+            {% if row.form.agt_minuten.errors %}
+              <div class="text-red-600 text-xs">{{ row.form.agt_minuten.errors|join:", " }}</div>
+            {% endif %}
+          </td>
         </tr>
       {% endfor %}
     </tbody>
@@ -223,23 +228,29 @@
 </form>
 
 <script>
-  // Checkbox-Logik wie gehabt
   (function(){
-    const rows = document.querySelectorAll('#tn_tbody_active tr, #tn_tbody_jf tr');
+    const rows = document.querySelectorAll('#tn_tbody_active tr[data-search], #tn_tbody_jf tr[data-search]');
     function updateRow(tr){
       const isAGT = tr.getAttribute('data-agt') === '1';
       const cb = tr.querySelector('input[type="checkbox"]');
       const fun = tr.querySelector('input[name$="-fahrzeug_funktion"]');
       const agt = tr.querySelector('input[name$="-agt_minuten"]');
-      if (!cb || !fun || !agt) return;
+      const agtTd = agt ? agt.closest('td') : null;
+      if (!cb || !fun || !agt || !agtTd) return;
+
       const checked = cb.checked;
+
       fun.disabled = !checked;
+
       if (isAGT) {
         agt.disabled = !checked;
+        agtTd.classList.remove('agt-off');
       } else {
         agt.value = "";
         agt.disabled = true;
+        agtTd.classList.add('agt-off');
       }
+
       if (!checked) {
         fun.value = "";
         if (isAGT) agt.value = "";

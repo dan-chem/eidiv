@@ -95,6 +95,26 @@
   .btn-primary { background: var(--brand-600); color:#fff; }
   .btn-primary:hover { background: var(--brand-700); }
   .btn-ghost { color: var(--brand-700); }
+
+  /* Deutlichere Disabled-Optik global (dezent) */
+input:disabled, select:disabled, textarea:disabled {
+  background: #f8fafc;       /* slate-50 */
+  color: #94a3b8;            /* slate-400 */
+  border-color: #e5e7eb;     /* gray-200 */
+  cursor: not-allowed;
+  opacity: 1;                /* nicht verblassen */
+}
+
+/* Speziell für AGT-Minuten bei Nicht-AGT deutlicher abdunkeln */
+td.agt-off {
+  background: #f1f5f9;       /* slate-100 */
+}
+td.agt-off input {
+  background: #e2e8f0 !important; /* slate-200 */
+  color: #64748b !important;       /* slate-500 */
+  border-color: #cbd5e1 !important;/* slate-300 */
+}
+
 </style>
   <script src="https://unpkg.com/htmx.org@1.9.12"></script>
 </head>
