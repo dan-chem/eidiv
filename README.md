@@ -15,6 +15,8 @@ pip install weasyprint
 python manage.py createsuperuser
 
 python manage.py makemigrations
+
+python manage.py migrate
 ```
 
 # Übersicht der Ordnerstruktur

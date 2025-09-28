@@ -4,13 +4,16 @@
 <div class="max-w-5xl mx-auto space-y-8">
 
   <!-- Hero -->
-  <header class="flex items-center gap-4">
-    <img src="{% static 'brand/logo.png' %}" alt="EiDiV" class="h-12 w-12 rounded" onerror="this.style.display='none'">
-    <div>
-      <h1 class="text-2xl font-semibold text-slate-800">EiDiV – Einsatz- und Dienstlistenverwaltung</h1>
-      <p class="text-slate-600">Schnell erfassen. Sauber prüfen. Als PDF versenden.</p>
-    </div>
-  </header>
+<header class="flex items-center gap-4">
+  <picture>
+    <source srcset="{% static 'brand/logo.svg' %}" type="image/svg+xml">
+    <img src="{% static 'brand/logo.png' %}" alt="EiDiV" class="h-12 w-12 rounded">
+  </picture>
+  <div>
+    <h1 class="text-2xl font-semibold text-slate-800">EiDiV – Einsatz- und Dienstlistenverwaltung</h1>
+    <p class="text-slate-600">Schnell erfassen. Sauber prüfen. Als PDF versenden.</p>
+  </div>
+</header>
 
   <!-- Quick Actions -->
   <section class="bg-white p-4 rounded shadow">

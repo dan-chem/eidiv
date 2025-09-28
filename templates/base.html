@@ -123,14 +123,17 @@ td.agt-off input {
   <nav class="bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60 border-b">
   <div class="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
     <a href="{% url 'index' %}" class="flex items-center gap-2">
-      <img src="{% static 'brand/logo.png' %}" alt="" class="h-7 w-7 rounded" onerror="this.style.display='none'">
+      <picture class="block">
+        <source srcset="{% static 'brand/logo.svg' %}" type="image/svg+xml">
+        <img src="{% static 'brand/logo.png' %}" alt="EiDiV" class="h-7 w-7 rounded">
+      </picture>
       <span class="font-semibold text-slate-800">EiDiV</span>
     </a>
     <div class="flex items-center gap-4 text-sm">
       <a href="{% url 'einsatz_liste' %}" class="text-slate-700 hover:text-brand-700">Einsätze</a>
       <a href="{% url 'dienst_liste' %}" class="text-slate-700 hover:text-brand-700">Dienste</a>
       {% if request.user.is_staff %}<a href="{% url 'admin:index' %}" class="text-slate-700 hover:text-brand-700">Admin</a>{% endif %}
-      <a href="{% url 'logout' %}" class="text-slate-700 hover:text-brand-700">Logout</a>
+      <form method="post" action="{% url 'logout' %}" class="inline"> {% csrf_token %} <button type="submit" class="text-slate-700 hover:text-brand-700">Logout</button> </form>
     </div>
   </div>
 </nav>
