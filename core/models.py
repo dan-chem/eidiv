@@ -8,6 +8,7 @@ class Mitglied(models.Model):
     hauptamtlich = models.BooleanField(default=False)
     kommandant = models.BooleanField(default=False)
     stv_kommandant = models.BooleanField(default=False)
+    jugendfeuerwehr = models.BooleanField(default=False, verbose_name="Jugendfeuerwehr")
 
     class Meta:
         ordering = ["name", "vorname"]

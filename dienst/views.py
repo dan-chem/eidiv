@@ -120,37 +120,22 @@ def dienst_neu(request):
     if request.method == "POST":
         d = Dienst()
         form = DienstForm(request.POST, instance=d)
-
         fv_formset = DienstFahrzeugFormSet(request.POST, instance=d, prefix="fv")
         ab_formset = DienstAbrollFormSet(request.POST, instance=d, prefix="ab")
         an_formset = DienstAnhaengerFormSet(request.POST, instance=d, prefix="an")
-
-        # Teilnahme-Formset über alle Mitglieder
         tn_formset = TeilnahmeFS(request.POST, prefix="tn")
 
-        forms_valid = (
-            form.is_valid()
-            and fv_formset.is_valid()
-            and ab_formset.is_valid()
-            and an_formset.is_valid()
-            and tn_formset.is_valid()
-        )
-
-        if forms_valid:
+        if form.is_valid() and fv_formset.is_valid() and ab_formset.is_valid() and an_formset.is_valid() and tn_formset.is_valid():
             with transaction.atomic():
                 d = form.save(commit=False)
-                assign_running_number(d)
-                d.full_clean()
-                d.save()
+                assign_running_number(d); d.full_clean(); d.save()
 
                 fv_formset.instance = d; fv_formset.save()
                 ab_formset.instance = d; ab_formset.save()
                 an_formset.instance = d; an_formset.save()
 
-                # Teilnahmen verarbeiten
                 members = {m.id: m for m in Mitglied.objects.all()}
                 existing = {t.mitglied_id: t for t in d.dienstteilnahme_set.all()}
-
                 for cd in tn_formset.cleaned_data:
                     mid = cd["mitglied_id"]
                     selected = bool(cd.get("selected"))
@@ -162,32 +147,30 @@ def dienst_neu(request):
                         obj = existing.get(mid) or DienstTeilnahme(dienst=d, mitglied_id=mid)
                         obj.fahrzeug_funktion = funk
                         obj.agt_minuten = agt_min if is_agt and agt_min is not None else None
-                        obj.full_clean()
-                        obj.save()
+                        obj.full_clean(); obj.save()
                     else:
                         if mid in existing:
                             existing[mid].delete()
 
             html = render_to_string("dienst/pdf.html", {"obj": d})
             pdf_bytes = render_html_to_pdf_bytes(html, base_url=request.build_absolute_uri("/"))
-
-            subject = "Neue Dienstliste eingegangen"
-            body = "Automatische Nachricht: Eine neue Dienstliste wurde erfasst."
-            send_mail_with_pdf(subject, body, pdf_bytes, f"Dienst_{d.nummer_formatiert}.pdf")
-
+            send_mail_with_pdf("Neue Dienstliste eingegangen", "Automatische Nachricht: Eine neue Dienstliste wurde erfasst.", pdf_bytes, f"Dienst_{d.nummer_formatiert}.pdf")
             messages.success(request, f"Dienst {d.nummer_formatiert} gespeichert.")
             return redirect(reverse("dienst_detail", args=[d.id]))
         else:
-            # bei Fehlern: Liste der Mitglieder für Anzeige zusammenbauen
-            members = list(Mitglied.objects.order_by("name", "vorname"))
-            tn_rows = list(zip(tn_formset.forms, members))
+            members_active = list(Mitglied.objects.filter(jugendfeuerwehr=False).order_by("name", "vorname"))
+            members_jf = list(Mitglied.objects.filter(jugendfeuerwehr=True).order_by("name", "vorname"))
+            members = members_active + members_jf
+            tn_rows_active, tn_rows_jf = [], []
+            for f, m in zip(tn_formset.forms, members):
+                (tn_rows_jf if m.jugendfeuerwehr else tn_rows_active).append((f, m))
+
             return render(request, "dienst/form.html", {
                 "form": form,
-                "fv_formset": fv_formset,
-                "ab_formset": ab_formset,
-                "an_formset": an_formset,
-                "tn_formset": tn_formset,  # für management_form
-                "tn_rows": tn_rows,
+                "fv_formset": fv_formset, "ab_formset": ab_formset, "an_formset": an_formset,
+                "tn_formset": tn_formset,
+                "tn_rows_active": tn_rows_active,
+                "tn_rows_jf": tn_rows_jf,
             }, status=400)
     else:
         d = Dienst()
@@ -196,23 +179,23 @@ def dienst_neu(request):
         ab_formset = DienstAbrollFormSet(instance=d, prefix="ab")
         an_formset = DienstAnhaengerFormSet(instance=d, prefix="an")
 
-        members = list(Mitglied.objects.order_by("name", "vorname"))
+        members_active = list(Mitglied.objects.filter(jugendfeuerwehr=False).order_by("name", "vorname"))
+        members_jf = list(Mitglied.objects.filter(jugendfeuerwehr=True).order_by("name", "vorname"))
+        members = members_active + members_jf
         initial = [{
-            "mitglied_id": m.id,
-            "selected": False,
-            "fahrzeug_funktion": "",
-            "agt_minuten": None,
+            "mitglied_id": m.id, "selected": False, "fahrzeug_funktion": "", "agt_minuten": None
         } for m in members]
+        TeilnahmeFS = formset_factory(TeilnahmeAlleMitgliederForm, extra=0)
         tn_formset = TeilnahmeFS(prefix="tn", initial=initial)
-        tn_rows = list(zip(tn_formset.forms, members))
+        tn_rows_active = list(zip(tn_formset.forms[:len(members_active)], members_active))
+        tn_rows_jf = list(zip(tn_formset.forms[len(members_active):], members_jf))
 
     return render(request, "dienst/form.html", {
         "form": form,
-        "fv_formset": fv_formset,
-        "ab_formset": ab_formset,
-        "an_formset": an_formset,
+        "fv_formset": fv_formset, "ab_formset": ab_formset, "an_formset": an_formset,
         "tn_formset": tn_formset,
-        "tn_rows": tn_rows,
+        "tn_rows_active": tn_rows_active,
+        "tn_rows_jf": tn_rows_jf,
     })
 
 @login_required

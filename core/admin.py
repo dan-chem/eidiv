@@ -12,7 +12,8 @@ from .models import (
 @admin.register(Mitglied)
 class MitgliedAdmin(admin.ModelAdmin):
     search_fields = ("name", "vorname")
-    list_display = ("name", "vorname", "agt", "hauptamtlich")
+    list_display = ("name", "vorname", "agt", "hauptamtlich", "jugendfeuerwehr")
+    list_filter = ("agt", "hauptamtlich", "jugendfeuerwehr")
 
 @admin.register(Fahrzeug)
 class FahrzeugAdmin(admin.ModelAdmin):

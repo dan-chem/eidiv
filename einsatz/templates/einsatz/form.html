@@ -231,43 +231,70 @@
   </section>
 
   <!-- Personal -->
-  <section class="bg-white p-4 rounded shadow">
-    <h2 class="font-semibold mb-3">Eingesetztes Personal</h2>
+<section class="bg-white p-4 rounded shadow">
+  <h2 class="font-semibold mb-3">Eingesetztes Personal</h2>
 
-    {{ tn_formset.management_form|default_if_none:"" }}
-    <table class="w-full text-sm">
-      <thead>
-        <tr class="text-left border-b">
-          <th class="py-2" style="width:120px;">Teilnahme</th>
-          <th class="py-2">Mitglied</th>
-          <th class="py-2">Fahrzeug/Funktion</th>
-          <th class="py-2" style="width:120px;">AGT (Min)</th>
-        </tr>
-      </thead>
-      <tbody id="tn_tbody">
-        {% for form, m in tn_rows %}
-        <tr class="border-b" data-agt="{{ m.agt|yesno:'1,0' }}">
-          <td class="py-1">
-            {{ form.selected }}
-            {{ form.mitglied_id }}
-          </td>
-          <td class="py-1">
-            {{ m.vorname }} {{ m.name }}
-            {% if m.agt %}<span class="ml-2 text-xs px-2 py-0.5 rounded bg-green-100 text-green-800">AGT</span>{% endif %}
-          </td>
-          <td class="py-1">
-            {{ form.fahrzeug_funktion }}
-            {% if form.fahrzeug_funktion.errors %}<div class="text-red-600 text-xs">{{ form.fahrzeug_funktion.errors|join:", " }}</div>{% endif %}
-          </td>
-          <td class="py-1">
-            {{ form.agt_minuten }}
-            {% if form.agt_minuten.errors %}<div class="text-red-600 text-xs">{{ form.agt_minuten.errors|join:", " }}</div>{% endif %}
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </section>
+  {{ tn_formset.management_form|default_if_none:"" }}
+
+  <h3 class="font-medium mb-1">Aktive</h3>
+  <table class="w-full text-sm mb-4">
+    <thead>
+      <tr class="text-left border-b">
+        <th class="py-2" style="width:120px;">Teilnahme</th>
+        <th class="py-2">Mitglied</th>
+        <th class="py-2">Fahrzeug/Funktion</th>
+        <th class="py-2" style="width:120px;">AGT (Min)</th>
+      </tr>
+    </thead>
+    <tbody id="tn_tbody_active">
+      {% for form, m in tn_rows_active %}
+      <tr class="border-b" data-agt="{{ m.agt|yesno:'1,0' }}">
+        <td class="py-1">{{ form.selected }} {{ form.mitglied_id }}</td>
+        <td class="py-1">{{ m.vorname }} {{ m.name }} {% if m.agt %}<span class="ml-2 text-xs px-2 py-0.5 rounded bg-green-100 text-green-800">AGT</span>{% endif %}</td>
+        <td class="py-1">
+          {{ form.fahrzeug_funktion }}
+          {% if form.fahrzeug_funktion.errors %}<div class="text-red-600 text-xs">{{ form.fahrzeug_funktion.errors|join:", " }}</div>{% endif %}
+        </td>
+        <td class="py-1">
+          {{ form.agt_minuten }}
+          {% if form.agt_minuten.errors %}<div class="text-red-600 text-xs">{{ form.agt_minuten.errors|join:", " }}</div>{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% if tn_rows_jf %}
+  <h3 class="font-medium mb-1">Jugendfeuerwehr</h3>
+  <table class="w-full text-sm">
+    <thead>
+      <tr class="text-left border-b">
+        <th class="py-2" style="width:120px;">Teilnahme</th>
+        <th class="py-2">Mitglied</th>
+        <th class="py-2">Fahrzeug/Funktion</th>
+        <th class="py-2" style="width:120px;">AGT (Min)</th>
+      </tr>
+    </thead>
+    <tbody id="tn_tbody_jf">
+      {% for form, m in tn_rows_jf %}
+      <tr class="border-b" data-agt="{{ m.agt|yesno:'1,0' }}">
+        <td class="py-1">{{ form.selected }} {{ form.mitglied_id }}</td>
+        <td class="py-1">{{ m.vorname }} {{ m.name }} {% if m.agt %}<span class="ml-2 text-xs px-2 py-0.5 rounded bg-green-100 text-green-800">AGT</span>{% endif %}</td>
+        <td class="py-1">
+          {{ form.fahrzeug_funktion }}
+          {% if form.fahrzeug_funktion.errors %}<div class="text-red-600 text-xs">{{ form.fahrzeug_funktion.errors|join:", " }}</div>{% endif %}
+        </td>
+        <td class="py-1">
+          {{ form.agt_minuten }}
+          {% if form.agt_minuten.errors %}<div class="text-red-600 text-xs">{{ form.agt_minuten.errors|join:", " }}</div>{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+</section>
+
 
   <div>
     <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">Speichern</button>
@@ -312,9 +339,9 @@
 </script>
 
 <script>
-  // Teilnahme-Checkbox steuert Eingaben; AGT-Minuten nur für AGT-Mitglieder
+  // Checkbox steuert Eingaben; AGT-Minuten nur für AGT-Mitglieder
   (function(){
-    const rows = document.querySelectorAll('#tn_tbody tr');
+    const rows = document.querySelectorAll('#tn_tbody_active tr, #tn_tbody_jf tr');
     function updateRow(tr){
       const isAGT = tr.getAttribute('data-agt') === '1';
       const cb = tr.querySelector('input[type="checkbox"]');
@@ -322,9 +349,7 @@
       const agt = tr.querySelector('input[name$="-agt_minuten"]');
       if (!cb || !fun || !agt) return;
       const checked = cb.checked;
-      // Funktion nur bei Teilnahme
       fun.disabled = !checked;
-      // AGT-Minuten nur bei Teilnahme und nur für AGT-Mitglieder
       if (isAGT) {
         agt.disabled = !checked;
       } else {
