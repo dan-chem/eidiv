@@ -216,54 +216,82 @@ def htmx_add_loeschwasser(request):
     e = Einsatz()
     fs = LoeschwasserFormSet(instance=e, prefix="lw")
     idx = fs.total_form_count()
-    form = fs._construct_form(fs.total_form_count())
-    return render(request, "einsatz/_loeschwasser_row.html", {"form": form, "prefix": "lw", "new_total": idx + 1, })
+    form = fs._construct_form(idx)
+    return render(request, "einsatz/_loeschwasser_row.html", {
+        "form": form,
+        "prefix": "lw",
+        "new_total": idx + 1,
+    })
 
 @login_required
 def htmx_add_einsatzmittel(request):
     e = Einsatz()
     fs = EinsatzmittelFormSet(instance=e, prefix="em")
     idx = fs.total_form_count()
-    form = fs._construct_form(fs.total_form_count())
-    return render(request, "einsatz/_einsatzmittel_row.html", {"form": form, "prefix": "em", "new_total": idx + 1, })
+    form = fs._construct_form(idx)
+    return render(request, "einsatz/_einsatzmittel_row.html", {
+        "form": form,
+        "prefix": "em",
+        "new_total": idx + 1,
+    })
 
 @login_required
 def htmx_add_fahrzeug(request):
     e = Einsatz()
     fs = EinsatzFahrzeugFormSet(instance=e, prefix="vf")
     idx = fs.total_form_count()
-    form = fs._construct_form(fs.total_form_count())
-    return render(request, "einsatz/_fahrzeug_row.html", {"form": form, "prefix": "vf", "new_total": idx + 1, })
+    form = fs._construct_form(idx)
+    return render(request, "einsatz/_fahrzeug_row.html", {
+        "form": form,
+        "prefix": "vf",
+        "new_total": idx + 1,
+    })
 
 @login_required
 def htmx_add_abroll(request):
     e = Einsatz()
     fs = EinsatzAbrollFormSet(instance=e, prefix="ab")
     idx = fs.total_form_count()
-    form = fs._construct_form(fs.total_form_count())
-    return render(request, "einsatz/_abroll_row.html", {"form": form, "prefix": "ab", "new_total": idx + 1, })
+    form = fs._construct_form(idx)
+    return render(request, "einsatz/_abroll_row.html", {
+        "form": form,
+        "prefix": "ab",
+        "new_total": idx + 1,
+    })
 
 @login_required
 def htmx_add_anhaenger(request):
     e = Einsatz()
     fs = EinsatzAnhaengerFormSet(instance=e, prefix="an")
     idx = fs.total_form_count()
-    form = fs._construct_form(fs.total_form_count())
-    return render(request, "einsatz/_anhaenger_row.html", {"form": form, "prefix": "an", "new_total": idx + 1, })
+    form = fs._construct_form(idx)
+    return render(request, "einsatz/_anhaenger_row.html", {
+        "form": form,
+        "prefix": "an",
+        "new_total": idx + 1,
+    })
 
 @login_required
 def htmx_add_ortsfeuerwehr(request):
     e = Einsatz()
     fs = EinsatzOrtsfeuerwehrFormSet(instance=e, prefix="of")
     idx = fs.total_form_count()
-    form = fs._construct_form(fs.total_form_count())
-    return render(request, "einsatz/_ortsfeuerwehr_row.html", {"form": form, "prefix": "of", "new_total": idx + 1, })
+    form = fs._construct_form(idx)
+    return render(request, "einsatz/_ortsfeuerwehr_row.html", {
+        "form": form,
+        "prefix": "of",
+        "new_total": idx + 1,
+    })
 
 @login_required
 def htmx_add_zusatzstelle(request):
     e = Einsatz()
     fs = ZusatzstelleFormSet(instance=e, prefix="zs")
     idx = fs.total_form_count()
-    form = fs._construct_form(fs.total_form_count())
-    return render(request, "einsatz/_zusatzstelle_row.html", {"form": form, "prefix": "zs", "new_total": idx + 1, })
+    form = fs._construct_form(idx)
+    return render(request, "einsatz/_zusatzstelle_row.html", {
+        "form": form,
+        "prefix": "zs",
+        "new_total": idx + 1,
+    })
 

@@ -17,6 +17,7 @@ from django.contrib.auth.decorators import login_required
 from core.models import MailEmpfaenger
 from core.models import Mitglied                     # neu
 from core.forms import TeilnahmeAlleMitgliederForm   # neu
+
 from .models import (
     Dienst,
     DienstFahrzeug,
@@ -250,23 +251,35 @@ def dienst_liste(request):
 @login_required
 def htmx_add_fahrzeug(request):
     d = Dienst()
-    formset = DienstFahrzeugFormSet(instance=d, prefix="fv")
+    fs = DienstFahrzeugFormSet(instance=d, prefix="fv")
     idx = fs.total_form_count()
-    form = formset._construct_form(formset.total_form_count())
-    return render(request, "dienst/_fahrzeug_row.html", {"form": form, "prefix": "fv", "new_total": idx + 1, })
+    form = fs._construct_form(idx)
+    return render(request, "dienst/_fahrzeug_row.html", {
+        "form": form,
+        "prefix": "fv",
+        "new_total": idx + 1,
+    })
 
 @login_required
 def htmx_add_abroll(request):
     d = Dienst()
-    formset = DienstAbrollFormSet(instance=d, prefix="ab")
+    fs = DienstAbrollFormSet(instance=d, prefix="ab")
     idx = fs.total_form_count()
-    form = formset._construct_form(formset.total_form_count())
-    return render(request, "dienst/_abroll_row.html", {"form": form, "prefix": "ab", "new_total": idx + 1, })
+    form = fs._construct_form(idx)
+    return render(request, "dienst/_abroll_row.html", {
+        "form": form,
+        "prefix": "ab",
+        "new_total": idx + 1,
+    })
 
 @login_required
 def htmx_add_anhaenger(request):
     d = Dienst()
-    formset = DienstAnhaengerFormSet(instance=d, prefix="an")
+    fs = DienstAnhaengerFormSet(instance=d, prefix="an")
     idx = fs.total_form_count()
-    form = formset._construct_form(formset.total_form_count())
-    return render(request, "dienst/_anhaenger_row.html", {"form": form, "prefix": "an", "new_total": idx + 1, })
+    form = fs._construct_form(idx)
+    return render(request, "dienst/_anhaenger_row.html", {
+        "form": form,
+        "prefix": "an",
+        "new_total": idx + 1,
+    })

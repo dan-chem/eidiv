@@ -1,18 +1,23 @@
 <input type="hidden" id="id_{{ prefix }}-TOTAL_FORMS" name="{{ prefix }}-TOTAL_FORMS" value="{{ new_total }}" hx-swap-oob="true">
+
 <tr class="border-b">
   <td class="py-1">
-    {{ form.abrollbehaelter }}
-    {% if form.abrollbehaelter.errors %}
-      <div class="text-red-600 text-xs">{{ form.abrollbehaelter.errors|join:", " }}</div>
-    {% endif %}
+    {{ form.anhaenger }}
+    {% if form.anhaenger.errors %}<div class="text-red-600 text-xs">{{ form.anhaenger.errors|join:", " }}</div>{% endif %}
+  </td>
+  <td class="py-1">
+    {{ form.kilometer }}
+    {% if form.kilometer.errors %}<div class="text-red-600 text-xs">{{ form.kilometer.errors|join:", " }}</div>{% endif %}
+  </td>
+  <td class="py-1">
+    {{ form.stunden }}
+    {% if form.stunden.errors %}<div class="text-red-600 text-xs">{{ form.stunden.errors|join:", " }}</div>{% endif %}
   </td>
   <td class="py-1" style="width:120px;">
     {{ form.erforderlich }}
   </td>
   <td class="py-1" style="width:100px;">
-    {% if form.non_field_errors %}
-      <div class="text-red-600 text-xs">{{ form.non_field_errors|join:", " }}</div>
-    {% endif %}
+    {% if form.non_field_errors %}<div class="text-red-600 text-xs">{{ form.non_field_errors|join:", " }}</div>{% endif %}
     {% if form.instance.pk %}{{ form.DELETE }} löschen{% endif %}
     {{ form.id }}
   </td>

@@ -1,18 +1,14 @@
-<input type="hidden" id="id_{{ prefix }}-TOTAL_FORMS" name="{{ prefix }}-TOTAL_FORMS" value="{{ new_total }}" hx-swap-oob="true">
+<input type="hidden"
+       id="id_{{ prefix }}-TOTAL_FORMS"
+       name="{{ prefix }}-TOTAL_FORMS"
+       value="{{ new_total }}"
+       hx-swap-oob="true">
+
 <tr class="border-b">
+  <td class="py-1">{{ form.anhaenger }}</td>
+  <td class="py-1">{{ form.kilometer }}</td>
+  <td class="py-1">{{ form.stunden }}</td>
   <td class="py-1">
-    {{ form.abrollbehaelter }}
-    {% if form.abrollbehaelter.errors %}
-      <div class="text-red-600 text-xs">{{ form.abrollbehaelter.errors|join:", " }}</div>
-    {% endif %}
-  </td>
-  <td class="py-1" style="width:120px;">
-    {{ form.erforderlich }}
-  </td>
-  <td class="py-1" style="width:100px;">
-    {% if form.non_field_errors %}
-      <div class="text-red-600 text-xs">{{ form.non_field_errors|join:", " }}</div>
-    {% endif %}
     {% if form.instance.pk %}{{ form.DELETE }} löschen{% endif %}
     {{ form.id }}
   </td>
