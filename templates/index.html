@@ -1,8 +1,128 @@
 {% extends "base.html" %}
+{% load static %}
 {% block content %}
-<h1 class="text-2xl font-bold mb-4">EiDiV</h1>
-<ul class="list-disc pl-6">
-  <li><a class="text-blue-600 hover:underline" href="/einsatz/neu">Neuen Einsatz erfassen</a></li>
-  <li><a class="text-blue-600 hover:underline" href="/dienst/neu">Neuen Dienst erfassen</a></li>
-</ul>
+<div class="max-w-5xl mx-auto space-y-8">
+
+  <!-- Hero -->
+  <header class="flex items-center gap-4">
+    <img src="{% static 'brand/logo.png' %}" alt="EiDiV" class="h-12 w-12 rounded" onerror="this.style.display='none'">
+    <div>
+      <h1 class="text-2xl font-semibold text-slate-800">EiDiV – Einsatz- und Dienstlistenverwaltung</h1>
+      <p class="text-slate-600">Schnell erfassen. Sauber prüfen. Als PDF versenden.</p>
+    </div>
+  </header>
+
+  <!-- Quick Actions -->
+  <section class="bg-white p-4 rounded shadow">
+    <h2 class="font-semibold mb-3">Aktionen</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <a href="{% url 'einsatz_neu' %}" class="block rounded border border-brand-200 bg-brand-50 hover:bg-brand-100 transition p-4">
+        <div class="flex items-center gap-3">
+          <span class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-brand-600 text-white">E</span>
+          <div>
+            <div class="font-semibold text-slate-800">Einsatz erfassen</div>
+            <div class="text-sm text-slate-600">Neue Einsatzliste anlegen und versenden</div>
+          </div>
+        </div>
+      </a>
+      <a href="{% url 'dienst_neu' %}" class="block rounded border border-brand-200 bg-brand-50 hover:bg-brand-100 transition p-4">
+        <div class="flex items-center gap-3">
+          <span class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-brand-600 text-white">D</span>
+          <div>
+            <div class="font-semibold text-slate-800">Dienst erfassen</div>
+            <div class="text-sm text-slate-600">Neue Dienstliste anlegen und versenden</div>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <div class="mt-4 flex flex-wrap gap-2">
+      <a href="{% url 'einsatz_liste' %}" class="btn btn-ghost">Einsätze ansehen</a>
+      <a href="{% url 'dienst_liste' %}" class="btn btn-ghost">Dienste ansehen</a>
+      {% if request.user.is_staff %}
+        <a href="{% url 'admin:index' %}" class="btn btn-ghost">Admin-Bereich</a>
+      {% endif %}
+    </div>
+  </section>
+
+  <!-- Kennzahlen -->
+  <section class="bg-white p-4 rounded shadow">
+    <h2 class="font-semibold mb-3">Übersicht {{ year }}</h2>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="rounded border bg-white p-3">
+        <div class="text-sm text-slate-600">Einsätze</div>
+        <div class="text-2xl font-semibold text-slate-800">{{ einsatz_count }}</div>
+      </div>
+      <div class="rounded border bg-white p-3">
+        <div class="text-sm text-slate-600">Dienste</div>
+        <div class="text-2xl font-semibold text-slate-800">{{ dienst_count }}</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Zuletzt erfasst -->
+  <section class="bg-white p-4 rounded shadow">
+    <h2 class="font-semibold mb-3">Zuletzt erfasst</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Einsätze -->
+      <div>
+        <h3 class="font-medium text-slate-700 mb-2">Einsätze</h3>
+        <ul class="space-y-2">
+          {% for e in recent_einsaetze %}
+          <li class="flex items-start justify-between gap-3 rounded border p-3 hover:bg-slate-50">
+            <div>
+              <div class="font-medium text-slate-800">{{ e.nummer_formatiert }}</div>
+              <div class="text-sm text-slate-600">
+                {% if e.stichwort %}{{ e.stichwort.bezeichnung }}{% else %}—{% endif %}
+                · {{ e.start_dt|date:"d.m.Y H:i" }}
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <a href="{% url 'einsatz_detail' e.id %}" class="text-brand-700 hover:underline">Details</a>
+              <a href="{% url 'einsatz_pdf' e.id %}" class="text-slate-600 hover:underline">PDF</a>
+            </div>
+          </li>
+          {% empty %}
+          <li class="text-sm text-slate-500">Noch keine Einträge.</li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <!-- Dienste -->
+      <div>
+        <h3 class="font-medium text-slate-700 mb-2">Dienste</h3>
+        <ul class="space-y-2">
+          {% for d in recent_dienste %}
+          <li class="flex items-start justify-between gap-3 rounded border p-3 hover:bg-slate-50">
+            <div>
+              <div class="font-medium text-slate-800">{{ d.nummer_formatiert }}</div>
+              <div class="text-sm text-slate-600">
+                {{ d.titel|default:"—" }} · {{ d.start_dt|date:"d.m.Y H:i" }}
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <a href="{% url 'dienst_detail' d.id %}" class="text-brand-700 hover:underline">Details</a>
+              <a href="{% url 'dienst_pdf' d.id %}" class="text-slate-600 hover:underline">PDF</a>
+            </div>
+          </li>
+          {% empty %}
+          <li class="text-sm text-slate-500">Noch keine Einträge.</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- Tastaturkürzel: E=Einsatz neu, D=Dienst neu -->
+<script>
+  (function(){
+    document.addEventListener('keydown', (e)=>{
+      if (e.target && ['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName)) return;
+      if (e.key === 'e' || e.key === 'E') { window.location.href = "{% url 'einsatz_neu' %}"; }
+      if (e.key === 'd' || e.key === 'D') { window.location.href = "{% url 'dienst_neu' %}"; }
+    });
+  })();
+</script>
 {% endblock %}

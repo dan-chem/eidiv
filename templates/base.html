@@ -1,3 +1,4 @@
+{% load static %}
 <!doctype html>
 <html lang="de">
 <head>
@@ -119,23 +120,17 @@ td.agt-off input {
   <script src="https://unpkg.com/htmx.org@1.9.12"></script>
 </head>
 <body class="bg-gray-50 text-gray-900">
-  <nav class="bg-white shadow">
-  <div class="max-w-5xl mx-auto px-4 py-3 flex gap-4 items-center">
-    <a href="/" class="font-semibold">EiDiV</a>
-    <a href="/einsatz/" class="text-blue-600 hover:underline">Einsätze</a>
-    <a href="/dienst/" class="text-blue-600 hover:underline">Dienste</a>
-    <a href="/einsatz/neu" class="text-blue-600 hover:underline">Neuer Einsatz</a>
-    <a href="/dienst/neu" class="text-blue-600 hover:underline">Neuer Dienst</a>
-    <div class="ml-auto">
-      {% if request.user.is_authenticated %}
-        <span class="text-sm mr-2">Angemeldet als {{ request.user.username }}</span>
-        <form method="post" action="{% url 'logout' %}" style="display:inline;">
-  {% csrf_token %}
-  <button type="submit" class="text-blue-600 hover:underline">Logout</button>
-</form>
-      {% else %}
-        <a href="{% url 'login' %}" class="text-blue-600 hover:underline">Login</a>
-      {% endif %}
+  <nav class="bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60 border-b">
+  <div class="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
+    <a href="{% url 'index' %}" class="flex items-center gap-2">
+      <img src="{% static 'brand/logo.png' %}" alt="" class="h-7 w-7 rounded" onerror="this.style.display='none'">
+      <span class="font-semibold text-slate-800">EiDiV</span>
+    </a>
+    <div class="flex items-center gap-4 text-sm">
+      <a href="{% url 'einsatz_liste' %}" class="text-slate-700 hover:text-brand-700">Einsätze</a>
+      <a href="{% url 'dienst_liste' %}" class="text-slate-700 hover:text-brand-700">Dienste</a>
+      {% if request.user.is_staff %}<a href="{% url 'admin:index' %}" class="text-slate-700 hover:text-brand-700">Admin</a>{% endif %}
+      <a href="{% url 'logout' %}" class="text-slate-700 hover:text-brand-700">Logout</a>
     </div>
   </div>
 </nav>
