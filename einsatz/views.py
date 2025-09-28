@@ -9,9 +9,11 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 from django.contrib.auth.decorators import login_required
 from django.forms import formset_factory
+from django.conf import settings
 
 from core.forms import TeilnahmeAlleMitgliederForm
 from core.models import Mitglied, Einsatzstichwort
+from core.services.mail import send_mail_with_pdf_to_active
 
 from .models import Einsatz, EinsatzTeilnahme
 
@@ -21,7 +23,7 @@ from .forms import (
     EinsatzFahrzeugFormSet, EinsatzAbrollFormSet, EinsatzAnhaengerFormSet, EinsatzOrtsfeuerwehrFormSet, ZusatzstelleFormSet,
     # EinsatzTeilnahmeFormSet,  # <- NICHT MEHR VERWENDEN
 )
-from .services import assign_running_number, render_html_to_pdf_bytes, send_mail_with_pdf
+from .services import assign_running_number, render_html_to_pdf_bytes
 
 def _build_grouped_rows(forms, members):
     rows = []
@@ -97,7 +99,13 @@ def einsatz_neu(request):
 
             html = render_to_string("einsatz/pdf.html", {"obj": e})
             pdf_bytes = render_html_to_pdf_bytes(html, base_url=request.build_absolute_uri("/"))
-            send_mail_with_pdf("Neue Einsatzliste eingegangen", "Automatische Nachricht: Eine neue Einsatzliste wurde erfasst.", pdf_bytes, f"Einsatz_{e.nummer_formatiert}.pdf")
+            send_mail_with_pdf_to_active(
+                subject="Neue Einsatzliste eingegangen",
+                body_text="Automatische Nachricht: Eine neue Einsatzliste wurde erfasst.",
+                pdf_bytes=pdf_bytes,
+                filename=f"Einsatz_{e.nummer_formatiert}.pdf",
+                fail_silently=not settings.DEBUG,
+            )
             messages.success(request, f"Einsatz {e.nummer_formatiert} gespeichert.")
             return redirect(reverse("einsatz_detail", args=[e.id]))
         else:
@@ -166,7 +174,7 @@ def einsatz_detail(request, pk: int):
 def einsatz_pdf(request, pk: int):
     obj = get_object_or_404(Einsatz, pk=pk)
     html = render_to_string("einsatz/pdf.html", {"obj": obj})
-    pdf_bytes = render_html_to_pdf_bytes(html)
+    pdf_bytes = render_html_to_pdf_bytes(html, base_url=request.build_absolute_uri("/"))
     from django.http import HttpResponse
     resp = HttpResponse(pdf_bytes, content_type="application/pdf")
     resp["Content-Disposition"] = f'attachment; filename="Einsatz_{obj.nummer_formatiert}.pdf"'
@@ -300,4 +308,3 @@ def htmx_add_zusatzstelle(request):
         "prefix": "zs",
         "new_total": idx + 1,
     })
-

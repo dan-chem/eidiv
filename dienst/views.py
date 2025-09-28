@@ -1,7 +1,6 @@
 # dienst/views.py
 from django import forms
 from django.contrib import messages
-from django.core.mail import EmailMessage
 from django.db import transaction
 from django.db.models import Max
 from django.forms import inlineformset_factory, NumberInput, Select, TextInput, CheckboxInput
@@ -13,10 +12,11 @@ from django.utils import timezone
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.contrib.auth.decorators import login_required
+from django.conf import settings
 
-from core.models import MailEmpfaenger
 from core.models import Mitglied                     # neu
 from core.forms import TeilnahmeAlleMitgliederForm   # neu
+from core.services.mail import send_mail_with_pdf_to_active
 
 from .models import (
     Dienst,
@@ -48,14 +48,6 @@ def assign_running_number(instance: Dienst):
 def render_html_to_pdf_bytes(html: str, base_url=None) -> bytes:
     from weasyprint import HTML
     return HTML(string=html, base_url=base_url).write_pdf()
-
-def send_mail_with_pdf(subject: str, body_text: str, pdf_bytes: bytes, filename: str) -> int:
-    recipients = list(MailEmpfaenger.objects.filter(aktiv=True).values_list("email", flat=True))
-    if not recipients:
-        return 0
-    msg = EmailMessage(subject=subject, body=body_text, to=recipients)
-    msg.attach(filename, pdf_bytes, "application/pdf")
-    return msg.send(fail_silently=True)
 
 def _build_grouped_rows(forms, members):
     rows = []
@@ -164,7 +156,13 @@ def dienst_neu(request):
 
             html = render_to_string("dienst/pdf.html", {"obj": d})
             pdf_bytes = render_html_to_pdf_bytes(html, base_url=request.build_absolute_uri("/"))
-            send_mail_with_pdf("Neue Dienstliste eingegangen", "Automatische Nachricht: Eine neue Dienstliste wurde erfasst.", pdf_bytes, f"Dienst_{d.nummer_formatiert}.pdf")
+            send_mail_with_pdf_to_active(
+                subject="Neue Dienstliste eingegangen",
+                body_text="Automatische Nachricht: Eine neue Dienstliste wurde erfasst.",
+                pdf_bytes=pdf_bytes,
+                filename=f"Dienst_{d.nummer_formatiert}.pdf",
+                fail_silently=not settings.DEBUG,
+            )
             messages.success(request, f"Dienst {d.nummer_formatiert} gespeichert.")
             return redirect(reverse("dienst_detail", args=[d.id]))
         else:

@@ -21,8 +21,11 @@ from .models import (
     EinsatzTeilnahme,
 )
 
-# PDF/Mail-Helfer aus deinem Service wiederverwenden
-from .services import render_html_to_pdf_bytes, send_mail_with_pdf
+# PDF-Renderer aus der App
+from .services import render_html_to_pdf_bytes
+# Zentraler Mail-Service (alle Empfänger/BCC/Timeout etc.)
+from core.services.mail import send_mail_with_pdf_to_active
+
 
 # Inlines
 class EinsatzPersonInline(admin.StackedInline):
@@ -154,6 +157,7 @@ class EinsatzAdmin(admin.ModelAdmin):
         )
     obj_actions.short_description = "Aktionen"
 
+    # Eigene Admin-URLs
     def get_urls(self):
         urls = super().get_urls()
         custom = [
@@ -162,6 +166,7 @@ class EinsatzAdmin(admin.ModelAdmin):
         ]
         return custom + urls
 
+    # PDF inline anzeigen
     def view_pdf(self, request, pk: int, *args, **kwargs):
         obj = get_object_or_404(Einsatz, pk=pk)
         html = render_to_string("einsatz/pdf.html", {"obj": obj})
@@ -170,15 +175,35 @@ class EinsatzAdmin(admin.ModelAdmin):
         resp["Content-Disposition"] = f'inline; filename="Einsatz_{obj.nummer_formatiert}.pdf"'
         return resp
 
+    # Mail erneut mit PDF-Anhang verschicken (zentraler Mail-Service)
     def resend_mail(self, request, pk: int, *args, **kwargs):
         obj = get_object_or_404(Einsatz, pk=pk)
         html = render_to_string("einsatz/pdf.html", {"obj": obj})
         pdf = render_html_to_pdf_bytes(html, base_url=request.build_absolute_uri("/"))
-        sent = send_mail_with_pdf(
-            "Neue Einsatzliste eingegangen",
-            "Automatische Nachricht: Eine neue Einsatzliste wurde erfasst.",
-            pdf,
-            f"Einsatz_{obj.nummer_formatiert}.pdf",
+        sent = send_mail_with_pdf_to_active(
+            subject="Neue Einsatzliste eingegangen",
+            body_text="Automatische Nachricht: Eine neue Einsatzliste wurde erfasst.",
+            pdf_bytes=pdf,
+            filename=f"Einsatz_{obj.nummer_formatiert}.pdf",
+            fail_silently=False,  # im Admin Fehler anzeigen
         )
         messages.success(request, f"E-Mail für Einsatz {obj.nummer_formatiert} erneut versendet ({sent} Empfänger).")
         return HttpResponseRedirect(reverse("admin:einsatz_einsatz_change", args=[obj.pk]))
+
+    # Bulk-Action: Mails erneut senden
+    @admin.action(description="PDF per Mail erneut senden")
+    def action_resend_mail(self, request, queryset):
+        total_sent = 0
+        for obj in queryset:
+            html = render_to_string("einsatz/pdf.html", {"obj": obj})
+            pdf = render_html_to_pdf_bytes(html, base_url=request.build_absolute_uri("/"))
+            total_sent += send_mail_with_pdf_to_active(
+                subject="Neue Einsatzliste eingegangen",
+                body_text="Automatische Nachricht: Eine neue Einsatzliste wurde erfasst.",
+                pdf_bytes=pdf,
+                filename=f"Einsatz_{obj.nummer_formatiert}.pdf",
+                fail_silently=False,
+            )
+        messages.success(request, f"E-Mails erneut versendet für {queryset.count()} Einsatz(e) (Summe Empfänger: {total_sent}).")
+
+    actions = ["action_resend_mail"]

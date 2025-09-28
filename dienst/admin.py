@@ -9,7 +9,8 @@ from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
 
 from weasyprint import HTML  # für PDF
-from core.models import MailEmpfaenger
+
+from core.services.mail import send_mail_with_pdf_to_active
 
 from .models import (
     Dienst,
@@ -47,15 +48,6 @@ class DienstTeilnahmeInline(admin.TabularInline):
 
 def _render_html_to_pdf_bytes(html: str, base_url=None) -> bytes:
     return HTML(string=html, base_url=base_url).write_pdf()
-
-def _send_mail_with_pdf(subject: str, body_text: str, pdf_bytes: bytes, filename: str) -> int:
-    recipients = list(MailEmpfaenger.objects.filter(aktiv=True).values_list("email", flat=True))
-    if not recipients:
-        return 0
-    from django.core.mail import EmailMessage
-    msg = EmailMessage(subject=subject, body=body_text, to=recipients)
-    msg.attach(filename, pdf_bytes, "application/pdf")
-    return msg.send(fail_silently=True)
 
 @admin.register(Dienst)
 class DienstAdmin(admin.ModelAdmin):
@@ -105,11 +97,30 @@ class DienstAdmin(admin.ModelAdmin):
         obj = get_object_or_404(Dienst, pk=pk)
         html = render_to_string("dienst/pdf.html", {"obj": obj})
         pdf = _render_html_to_pdf_bytes(html, base_url=request.build_absolute_uri("/"))
-        sent = _send_mail_with_pdf(
-            "Neue Dienstliste eingegangen",
-            "Automatische Nachricht: Eine neue Dienstliste wurde erfasst.",
-            pdf,
-            f"Dienst_{obj.nummer_formatiert}.pdf",
+        sent = send_mail_with_pdf_to_active(
+            subject="Neue Dienstliste eingegangen",
+            body_text="Automatische Nachricht: Eine neue Dienstliste wurde erfasst.",
+            pdf_bytes=pdf,
+            filename=f"Dienst_{obj.nummer_formatiert}.pdf",
+            fail_silently=False,  # im Admin Fehler anzeigen
         )
         messages.success(request, f"E-Mail für Dienst {obj.nummer_formatiert} erneut versendet ({sent} Empfänger).")
         return HttpResponseRedirect(reverse("admin:dienst_dienst_change", args=[obj.pk]))
+
+    # Bulk-Action: Mails erneut senden
+    @admin.action(description="PDF per Mail erneut senden")
+    def action_resend_mail(self, request, queryset):
+        total_sent = 0
+        for obj in queryset:
+            html = render_to_string("dienst/pdf.html", {"obj": obj})
+            pdf = _render_html_to_pdf_bytes(html, base_url=request.build_absolute_uri("/"))
+            total_sent += send_mail_with_pdf_to_active(
+                subject="Neue Dienstliste eingegangen",
+                body_text="Automatische Nachricht: Eine neue Dienstliste wurde erfasst.",
+                pdf_bytes=pdf,
+                filename=f"Dienst_{obj.nummer_formatiert}.pdf",
+                fail_silently=False,
+            )
+        messages.success(request, f"E-Mails erneut versendet für {queryset.count()} Dienst(e) (Summe Empfänger: {total_sent}).")
+
+    actions = ["action_resend_mail"]
