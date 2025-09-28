@@ -130,15 +130,52 @@
   <div style="white-space: pre-wrap;">{{ obj.einsatzmassnahmen }}</div>
 </section>
 
-<section class="page-break avoid-break">
+<!-- Eingesetztes Personal -->
+<section>
   <h2>Eingesetztes Personal</h2>
-  <table>
-    <thead><tr><th>Mitglied</th><th>Fahrzeug/Funktion</th><th>AGT (Min)</th></tr></thead>
+
+  <!-- Aktive -->
+  <h3>Aktive</h3>
+  <table class="table table-sm w-100">
+    <thead>
+      <tr>
+        <th style="text-align:left;">Mitglied</th>
+        <th style="text-align:left;">Fahrzeug/Funktion</th>
+        <th style="text-align:right;">AGT (Min)</th>
+      </tr>
+    </thead>
     <tbody>
       {% for t in obj.einsatzteilnahme_set.all %}
-      <tr><td>{{ t.mitglied }}</td><td>{{ t.fahrzeug_funktion }}</td><td>{{ t.agt_minuten|default:"—" }}</td></tr>
-      {% empty %}
-      <tr><td colspan="3">—</td></tr>
+        {% if not t.mitglied.jugendfeuerwehr %}
+          <tr>
+            <td>{{ t.mitglied.vorname }} {{ t.mitglied.name }}{% if t.mitglied.agt %} (AGT){% endif %}</td>
+            <td>{{ t.fahrzeug_funktion|default:"—" }}</td>
+            <td style="text-align:right;">{{ t.agt_minuten|default:"—" }}</td>
+          </tr>
+        {% endif %}
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- Jugendfeuerwehr -->
+  <h3 style="margin-top:10px;">Jugendfeuerwehr</h3>
+  <table class="table table-sm w-100">
+    <thead>
+      <tr>
+        <th style="text-align:left;">Mitglied</th>
+        <th style="text-align:left;">Fahrzeug/Funktion</th>
+        <th style="text-align:right;">AGT (Min)</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for t in obj.einsatzteilnahme_set.all %}
+        {% if t.mitglied.jugendfeuerwehr %}
+          <tr>
+            <td>{{ t.mitglied.vorname }} {{ t.mitglied.name }}{% if t.mitglied.agt %} (AGT){% endif %}</td>
+            <td>{{ t.fahrzeug_funktion|default:"—" }}</td>
+            <td style="text-align:right;">{{ t.agt_minuten|default:"—" }}</td>
+          </tr>
+        {% endif %}
       {% endfor %}
     </tbody>
   </table>
