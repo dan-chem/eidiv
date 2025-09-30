@@ -7,6 +7,7 @@ from django.utils.html import format_html
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
+from django.templatetags.static import static
 
 from weasyprint import HTML  # für PDF
 
@@ -87,7 +88,8 @@ class DienstAdmin(admin.ModelAdmin):
 
     def view_pdf(self, request, pk: int, *args, **kwargs):
         obj = get_object_or_404(Dienst, pk=pk)
-        html = render_to_string("dienst/pdf.html", {"obj": obj})
+        css_url = request.build_absolute_uri(static('css/print.css'))
+        html = render_to_string("dienst/pdf.html", {"obj": obj, "print_css_url": css_url})
         pdf = _render_html_to_pdf_bytes(html, base_url=request.build_absolute_uri("/"))
         resp = HttpResponse(pdf, content_type="application/pdf")
         resp["Content-Disposition"] = f'inline; filename="Dienst_{obj.nummer_formatiert}.pdf"'
@@ -95,7 +97,8 @@ class DienstAdmin(admin.ModelAdmin):
 
     def resend_mail(self, request, pk: int, *args, **kwargs):
         obj = get_object_or_404(Dienst, pk=pk)
-        html = render_to_string("dienst/pdf.html", {"obj": obj})
+        css_url = request.build_absolute_uri(static('css/print.css'))
+        html = render_to_string("dienst/pdf.html", {"obj": obj, "print_css_url": css_url})
         pdf = _render_html_to_pdf_bytes(html, base_url=request.build_absolute_uri("/"))
         sent = send_mail_with_pdf_to_active(
             subject="Neue Dienstliste eingegangen",

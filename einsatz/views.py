@@ -10,6 +10,7 @@ from django.db.models import Q
 from django.contrib.auth.decorators import login_required
 from django.forms import formset_factory
 from django.conf import settings
+from django.templatetags.static import static
 
 from core.forms import TeilnahmeAlleMitgliederForm
 from core.models import Mitglied, Einsatzstichwort
@@ -97,7 +98,8 @@ def einsatz_neu(request):
                         if mid in existing:
                             existing[mid].delete()
 
-            html = render_to_string("einsatz/pdf.html", {"obj": e})
+            css_url = request.build_absolute_uri(static('css/print.css'))
+            html = render_to_string("einsatz/pdf.html", {"obj": e, "print_css_url": css_url})
             pdf_bytes = render_html_to_pdf_bytes(html, base_url=request.build_absolute_uri("/"))
             try:
                 send_mail_with_pdf_to_active(
@@ -177,9 +179,9 @@ def einsatz_detail(request, pk: int):
 @login_required
 def einsatz_pdf(request, pk: int):
     obj = get_object_or_404(Einsatz, pk=pk)
-    html = render_to_string("einsatz/pdf.html", {"obj": obj})
+    css_url = request.build_absolute_uri(static('css/print.css'))
+    html = render_to_string("einsatz/pdf.html", {"obj": obj, "print_css_url": css_url})
     pdf_bytes = render_html_to_pdf_bytes(html, base_url=request.build_absolute_uri("/"))
-    from django.http import HttpResponse
     resp = HttpResponse(pdf_bytes, content_type="application/pdf")
     resp["Content-Disposition"] = f'attachment; filename="Einsatz_{obj.nummer_formatiert}.pdf"'
     return resp

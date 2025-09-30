@@ -1,0 +1,88 @@
+/* static/pdfs/print.css */
+/* Basislayout für A4-Hochformat, WeasyPrint-optimiert */
+@page {
+  size: A4;
+  margin: 16mm 14mm;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  font-family: "DejaVu Sans", Arial, sans-serif; /* DejaVu deckt Umlaute im PDF ab */
+  font-size: 11pt;
+  color: #111;
+}
+
+h1, h2, h3 {
+  margin: 0 0 6pt 0;
+  padding: 0;
+}
+h1 { font-size: 16pt; }
+h2 { font-size: 13pt; margin-top: 10pt; border-bottom: 1px solid #999; padding-bottom: 2pt; }
+h3 { font-size: 11.5pt; margin-top: 8pt; }
+
+header, footer {
+  margin-bottom: 8pt;
+}
+
+section {
+  margin: 10pt 0 12pt 0;
+  page-break-inside: avoid;
+}
+
+/* Tabellen */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 6pt 0 0 0;
+}
+th, td {
+  border: 1px solid #bbb;
+  padding: 4pt 6pt;
+  vertical-align: top;
+}
+th {
+  background: #f0f0f0;
+  font-weight: 600;
+}
+thead { display: table-header-group; }  /* Kopf pro Seite wiederholen */
+tfoot { display: table-footer-group; }
+
+/* Kleine Hilfsklassen */
+.mt-0 { margin-top: 0; }
+.mt-4 { margin-top: 4pt; }
+.mt-6 { margin-top: 6pt; }
+.mb-4 { margin-bottom: 4pt; }
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6pt 12pt;
+}
+.grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 6pt 12pt;
+}
+.mono { font-family: "DejaVu Sans Mono", "Courier New", monospace; }
+.small { font-size: 9.5pt; color: #333; }
+
+hr {
+  border: 0;
+  border-top: 1px solid #ccc;
+  margin: 8pt 0;
+}
+
+/* Seitenumbruch-Helfer */
+.page-break { page-break-before: always; }
+.avoid-break { page-break-inside: avoid; }
+
+/* Listen */
+ul { margin: 4pt 0 0 16pt; padding: 0; }
+
+/* Kopfzeile als laufendes Element (optional) */
+/*
+header#doc-header { position: running(doc-header); }
+@page {
+  @top-center { content: element(doc-header); }
+}
+*/

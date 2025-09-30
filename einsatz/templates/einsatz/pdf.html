@@ -1,9 +1,10 @@
+{% load static %}
 <!doctype html>
 <html lang="de">
 <head>
   <meta charset="utf-8">
   <title>Einsatz {{ obj.nummer_formatiert }}</title>
-  <link rel="stylesheet" href="/static/pdfs/print.css">
+  <link rel="stylesheet" href="{% if print_css_url %}{{ print_css_url }}{% else %}{% static 'css/print.css' %}{% endif %}">
   <style>
   :root{
     --muted-100:#f1f5f9;

@@ -7,6 +7,7 @@ from django.utils.html import format_html
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
+from django.templatetags.static import static
 
 from .models import (
     Einsatz,
@@ -169,7 +170,8 @@ class EinsatzAdmin(admin.ModelAdmin):
     # PDF inline anzeigen
     def view_pdf(self, request, pk: int, *args, **kwargs):
         obj = get_object_or_404(Einsatz, pk=pk)
-        html = render_to_string("einsatz/pdf.html", {"obj": obj})
+        css_url = request.build_absolute_uri(static('css/print.css'))
+        html = render_to_string("einsatz/pdf.html", {"obj": obj, "print_css_url": css_url})
         pdf = render_html_to_pdf_bytes(html, base_url=request.build_absolute_uri("/"))
         resp = HttpResponse(pdf, content_type="application/pdf")
         resp["Content-Disposition"] = f'inline; filename="Einsatz_{obj.nummer_formatiert}.pdf"'
@@ -178,7 +180,8 @@ class EinsatzAdmin(admin.ModelAdmin):
     # Mail erneut mit PDF-Anhang verschicken (zentraler Mail-Service)
     def resend_mail(self, request, pk: int, *args, **kwargs):
         obj = get_object_or_404(Einsatz, pk=pk)
-        html = render_to_string("einsatz/pdf.html", {"obj": obj})
+        css_url = request.build_absolute_uri(static('css/print.css'))
+        html = render_to_string("einsatz/pdf.html", {"obj": obj, "print_css_url": css_url})
         pdf = render_html_to_pdf_bytes(html, base_url=request.build_absolute_uri("/"))
         sent = send_mail_with_pdf_to_active(
             subject="Neue Einsatzliste eingegangen",

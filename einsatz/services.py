@@ -3,6 +3,8 @@ from django.db import transaction
 from django.db.models import Max
 from django.utils import timezone
 from django.core.mail import EmailMessage
+from weasyprint import HTML, CSS
+from django.contrib.staticfiles import finders
 
 from core.models import MailEmpfaenger
 
@@ -21,10 +23,21 @@ def assign_running_number(instance, model_cls):
         instance.seq = max_seq + 1
 
 
-def render_html_to_pdf_bytes(html, base_url=None):
-    # Lazy-Import, damit der Server auch ohne WeasyPrint startet
-    from weasyprint import HTML
-    return HTML(string=html, base_url=base_url).write_pdf()
+def render_html_to_pdf_bytes(html: str, base_url=None, extra_css_paths: list[str] | None = None) -> bytes:
+    stylesheets = []
+
+    # print.css aus dem Static-Finder holen (funktioniert auch in Prod nach collectstatic)
+    css_path = finders.find('css/print.css')
+    if css_path:
+        stylesheets.append(CSS(filename=css_path))
+
+    # optional weitere lokale CSS-Pfade akzeptieren
+    if extra_css_paths:
+        for p in extra_css_paths:
+            if p:
+                stylesheets.append(CSS(filename=p))
+
+    return HTML(string=html, base_url=base_url).write_pdf(stylesheets=stylesheets)
 
 
 def send_mail_with_pdf(subject, body_text, pdf_bytes, filename):
@@ -34,3 +47,4 @@ def send_mail_with_pdf(subject, body_text, pdf_bytes, filename):
     msg = EmailMessage(subject=subject, body=body_text, to=recipients)
     msg.attach(filename, pdf_bytes, "application/pdf")
     return msg.send(fail_silently=True)
+

@@ -12,12 +12,15 @@ pip install --upgrade pip setuptools wheel
 sudo apt-get install -y libcairo2 libpango-1.0-0 libgdk-pixbuf2.0-0 libffi-dev shared-mime-info fonts-dejavu fonts-liberation libpangoft2-1.0-0
 pip install weasyprint
 pip install python-dotenv
+pip install whitenoise
 
 python manage.py createsuperuser
 
 python manage.py makemigrations
 
 python manage.py migrate
+
+python manage.py collectstatic --noinput
 ```
 
 # Übersicht der Ordnerstruktur

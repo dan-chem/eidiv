@@ -13,6 +13,9 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
+from django.templatetags.static import static
+from weasyprint import HTML, CSS
+from django.contrib.staticfiles import finders
 
 from core.models import Mitglied                     # neu
 from core.forms import TeilnahmeAlleMitgliederForm   # neu
@@ -46,8 +49,11 @@ def assign_running_number(instance: Dienst):
         instance.seq = max_seq + 1
 
 def render_html_to_pdf_bytes(html: str, base_url=None) -> bytes:
-    from weasyprint import HTML
-    return HTML(string=html, base_url=base_url).write_pdf()
+    stylesheets = []
+    css_path = finders.find('css/print.css')
+    if css_path:
+        stylesheets.append(CSS(filename=css_path))
+    return HTML(string=html, base_url=base_url).write_pdf(stylesheets=stylesheets)
 
 def _build_grouped_rows(forms, members):
     rows = []
@@ -154,7 +160,8 @@ def dienst_neu(request):
                         if mid in existing:
                             existing[mid].delete()
 
-            html = render_to_string("dienst/pdf.html", {"obj": d})
+            css_url = request.build_absolute_uri(static('css/print.css'))
+            html = render_to_string("dienst/pdf.html", {"obj": d, "print_css_url": css_url})
             pdf_bytes = render_html_to_pdf_bytes(html, base_url=request.build_absolute_uri("/"))
             try:
                 send_mail_with_pdf_to_active(
@@ -217,9 +224,9 @@ def dienst_detail(request, pk: int):
 @login_required
 def dienst_pdf(request, pk: int):
     obj = get_object_or_404(Dienst, pk=pk)
-    html = render_to_string("dienst/pdf.html", {"obj": obj})
+    css_url = request.build_absolute_uri(static('css/print.css'))
+    html = render_to_string("dienst/pdf.html", {"obj": obj, "print_css_url": css_url})
     pdf_bytes = render_html_to_pdf_bytes(html, base_url=request.build_absolute_uri("/"))
-    from django.http import HttpResponse
     resp = HttpResponse(pdf_bytes, content_type="application/pdf")
     resp["Content-Disposition"] = f'attachment; filename="Dienst_{obj.nummer_formatiert}.pdf"'
     return resp
