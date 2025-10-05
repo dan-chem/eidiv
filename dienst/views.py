@@ -16,11 +16,14 @@ from django.conf import settings
 from django.templatetags.static import static
 from weasyprint import HTML, CSS
 from django.contrib.staticfiles import finders
+from django.http import HttpResponse
 from core.utils.files import safe_filename
 
 from core.models import Mitglied                     # neu
 from core.forms import TeilnahmeAlleMitgliederForm   # neu
 from core.services.mail import send_mail_with_pdf_to_active
+
+from .services import assign_running_number, render_html_to_pdf_bytes
 
 from .models import (
     Dienst,
@@ -33,28 +36,6 @@ from .models import (
 common = {"class": "w-full border rounded px-2 py-1"}
 
 # ---------- Helpers ----------
-
-def assign_running_number(instance: Dienst):
-    if getattr(instance, "year", None) and getattr(instance, "seq", None):
-        return
-    now = timezone.now()
-    with transaction.atomic():
-        year = now.year
-        max_seq = (
-            Dienst.objects.select_for_update()
-            .filter(year=year)
-            .aggregate(Max("seq"))["seq__max"]
-            or 0
-        )
-        instance.year = year
-        instance.seq = max_seq + 1
-
-def render_html_to_pdf_bytes(html: str, base_url=None) -> bytes:
-    stylesheets = []
-    css_path = finders.find('css/print.css')
-    if css_path:
-        stylesheets.append(CSS(filename=css_path))
-    return HTML(string=html, base_url=base_url).write_pdf(stylesheets=stylesheets)
 
 def _build_grouped_rows(forms, members):
     rows = []
