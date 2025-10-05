@@ -100,7 +100,7 @@ def einsatz_neu(request):
                             existing[mid].delete()
 
             css_url = request.build_absolute_uri(static('css/print.css'))
-            html = render_to_string("einsatz/pdf.html", {"obj": obj})
+            html = render_to_string("einsatz/pdf.html", {"obj": e})
             pdf_bytes = render_html_to_pdf_bytes(html, base_url=request.build_absolute_uri("/"))
             try:
                 send_mail_with_pdf_to_active(
