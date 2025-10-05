@@ -14,35 +14,58 @@ from pathlib import Path
 import os
 from dotenv import load_dotenv
 
-# Projektbasis ermitteln und .env laden
+# Projektbasis und .env
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
 
-# Sicherheit
-SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-...)")  # optional später aus .env holen
+# kleine Helfer
+def split_csv(name: str, default: str = "") -> list[str]:
+    return [x.strip() for x in os.environ.get(name, default).split(",") if x.strip()]
 
-# Debug aus .env (Default: 1 = an)
+# Sicherheit
+SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-...")  # TODO: in .env pflegen
+
+# Debug
 DEBUG = os.environ.get("DEBUG", "1") == "1"
 
-# Hosts (im Prod-Betrieb über .env steuern, z. B. ALLOWED_HOSTS="localhost,127.0.0.1")
-ALLOWED_HOSTS = [h.strip() for h in os.environ.get("ALLOWED_HOSTS", "").split(",") if h.strip()] if not DEBUG else []
+# Hosts
+ALLOWED_HOSTS = (
+    [h for h in split_csv("ALLOWED_HOSTS")]
+    if not DEBUG else []
+)
 
+# Site/Origins
 SITE_URL = os.environ.get("SITE_URL", "").strip()
-CSRF_TRUSTED_ORIGINS = [SITE_URL] if SITE_URL.startswith(("http://", "https://")) else []
+
+# CSRF Trusted Origins:
+# - nimmt SITE_URL (falls Schema vorhanden)
+# - plus beliebige weitere Origins aus .env (z. B. http://192.168.111.130:8000)
+CSRF_TRUSTED_ORIGINS = []
+if SITE_URL.startswith(("http://", "https://")):
+    CSRF_TRUSTED_ORIGINS.append(SITE_URL)
+
+CSRF_TRUSTED_ORIGINS += split_csv(
+    "CSRF_TRUSTED_ORIGINS",  # z. B. "http://192.168.111.130:8000,http://192.168.111.112"
+)
 
 # Static
 STATIC_URL = "/static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
-#ALLOWED_HOSTS = []
-
-# Proxy vertraut machen: NPM setzt X-Forwarded-Proto
+# Proxy-Setup (NPM setzt X-Forwarded-Proto/Host)
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+USE_X_FORWARDED_HOST = True
 
-if SITE_URL.startswith("https://"):
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
+# Secure-Cookies: standardmäßig bei https (SITE_URL), aber via .env überschreibbar
+# Für lokalen IP-Zugriff über http setze in .env: USE_SECURE_COOKIES=0
+USE_SECURE_COOKIES = os.environ.get(
+    "USE_SECURE_COOKIES",
+    "1" if SITE_URL.startswith("https://") else "0"
+) == "1"
+
+SESSION_COOKIE_SECURE = USE_SECURE_COOKIES
+CSRF_COOKIE_SECURE = USE_SECURE_COOKIES
 
 # Application definition
 
