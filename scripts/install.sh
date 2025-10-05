@@ -4,13 +4,13 @@ set -euo pipefail
 # Konfiguration
 APP_USER="${APP_USER:-daniel}"
 APP_DIR="${APP_DIR:-/home/daniel/eidiv}"
-REPO_URL="${REPO_URL:-https://your.git.server/eidiv.git}"
-CHECKOUT_REF="${CHECKOUT_REF:-main}"   # z. B. v1.0.1 für Release
+REPO_URL="${REPO_URL:-https://github.com/dan-chem/eidiv.git}"
+CHECKOUT_REF="${CHECKOUT_REF:-master}"   # z. B. v1.0.1 für Release
 PY=python3
 PIP_OPTS="--no-cache-dir"
 
 sudo apt-get update
-sudo apt-get install -y python3-venv libpango-1.0-0 libcairo2 libgdk-pixbuf-2.0-0 libffi8 libxml2 libxslt1.1 fonts-dejavu-core git
+sudo apt-get install -y python3-venv libcairo2 libpango-1.0-0 libgdk-pixbuf2.0-0 libffi-dev shared-mime-info fonts-dejavu fonts-liberation libpangoft2-1.0-0 git
 
 # Projektverzeichnis
 sudo -u "$APP_USER" mkdir -p "$APP_DIR"
