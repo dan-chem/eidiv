@@ -40,6 +40,8 @@ fi
 # Django Schritte
 $PY manage.py migrate --noinput
 $PY manage.py collectstatic --noinput
+# Idempotent: legt nur an, wenn noch keiner existiert
+$PY manage.py ensure_superuser
 
 # systemd Unit schreiben
 SERVICE_FILE=/etc/systemd/system/eidiv.service
