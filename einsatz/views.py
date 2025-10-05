@@ -99,7 +99,7 @@ def einsatz_neu(request):
                             existing[mid].delete()
 
             css_url = request.build_absolute_uri(static('css/print.css'))
-            html = render_to_string("einsatz/pdf.html", {"obj": e, "print_css_url": css_url})
+            html = render_to_string("einsatz/pdf.html", {"obj": obj})
             pdf_bytes = render_html_to_pdf_bytes(html, base_url=request.build_absolute_uri("/"))
             try:
                 send_mail_with_pdf_to_active(
@@ -180,8 +180,8 @@ def einsatz_detail(request, pk: int):
 def einsatz_pdf(request, pk: int):
     obj = get_object_or_404(Einsatz, pk=pk)
     css_url = request.build_absolute_uri(static('css/print.css'))
-    html = render_to_string("einsatz/pdf.html", {"obj": obj, "print_css_url": css_url})
-    pdf_bytes = render_html_to_pdf_bytes(html, base_url=request.build_absolute_uri("/"))
+    html = render_to_string("einsatz/pdf.html", {"obj": obj})
+    pdf = render_html_to_pdf_bytes(html, base_url=request.build_absolute_uri("/"))
     resp = HttpResponse(pdf_bytes, content_type="application/pdf")
     resp["Content-Disposition"] = f'attachment; filename="Einsatz_{obj.nummer_formatiert}.pdf"'
     return resp
