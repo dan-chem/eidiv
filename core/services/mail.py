@@ -3,6 +3,7 @@ from typing import Iterable, Optional, Sequence
 from django.conf import settings
 from django.core.mail import EmailMessage, get_connection
 from core.models import MailEmpfaenger
+from core.utils.files import safe_filename
 
 def get_active_recipients() -> list[str]:
     return list(MailEmpfaenger.objects.filter(aktiv=True).values_list("email", flat=True))
@@ -30,7 +31,7 @@ def send_mail_text(
     )
     if attachments:
         for name, data, mime in attachments:
-            msg.attach(name, data, mime)
+            msg.attach(safe_filename(name), data, mime)
     return msg.send(fail_silently=fail_silently)
 
 def send_mail_with_pdf_to_active(

@@ -16,6 +16,7 @@ from django.conf import settings
 from django.templatetags.static import static
 from weasyprint import HTML, CSS
 from django.contrib.staticfiles import finders
+from core.utils.files import safe_filename
 
 from core.models import Mitglied                     # neu
 from core.forms import TeilnahmeAlleMitgliederForm   # neu
@@ -224,11 +225,11 @@ def dienst_detail(request, pk: int):
 @login_required
 def dienst_pdf(request, pk: int):
     obj = get_object_or_404(Dienst, pk=pk)
-    css_url = request.build_absolute_uri(static('css/print.css'))
-    html = render_to_string("dienst/pdf.html", {"obj": obj, "print_css_url": css_url})
+    html = render_to_string("dienst/pdf.html", {"obj": obj})
     pdf_bytes = render_html_to_pdf_bytes(html, base_url=request.build_absolute_uri("/"))
     resp = HttpResponse(pdf_bytes, content_type="application/pdf")
-    resp["Content-Disposition"] = f'attachment; filename="Dienst_{obj.nummer_formatiert}.pdf"'
+    safe_name = safe_filename(f"Dienst_{obj.nummer_formatiert}.pdf")  # <-- safe
+    resp["Content-Disposition"] = f'attachment; filename="{safe_name}"'
     return resp
 
 @login_required

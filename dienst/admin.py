@@ -12,6 +12,7 @@ from django.templatetags.static import static
 from weasyprint import HTML  # für PDF
 
 from core.services.mail import send_mail_with_pdf_to_active
+from core.utils.files import safe_filename
 
 from .models import (
     Dienst,
@@ -88,11 +89,11 @@ class DienstAdmin(admin.ModelAdmin):
 
     def view_pdf(self, request, pk: int, *args, **kwargs):
         obj = get_object_or_404(Dienst, pk=pk)
-        css_url = request.build_absolute_uri(static('css/print.css'))
-        html = render_to_string("dienst/pdf.html", {"obj": obj, "print_css_url": css_url})
+        html = render_to_string("dienst/pdf.html", {"obj": obj})
         pdf = _render_html_to_pdf_bytes(html, base_url=request.build_absolute_uri("/"))
         resp = HttpResponse(pdf, content_type="application/pdf")
-        resp["Content-Disposition"] = f'inline; filename="Dienst_{obj.nummer_formatiert}.pdf"'
+        safe_name = safe_filename(f"Dienst_{obj.nummer_formatiert}.pdf")  # <-- safe
+        resp["Content-Disposition"] = f'inline; filename="{safe_name}"'
         return resp
 
     def resend_mail(self, request, pk: int, *args, **kwargs):

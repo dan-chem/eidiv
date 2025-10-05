@@ -15,6 +15,7 @@ from django.templatetags.static import static
 from core.forms import TeilnahmeAlleMitgliederForm
 from core.models import Mitglied, Einsatzstichwort
 from core.services.mail import send_mail_with_pdf_to_active
+from core.utils.files import safe_filename
 
 from .models import Einsatz, EinsatzTeilnahme
 
@@ -179,11 +180,11 @@ def einsatz_detail(request, pk: int):
 @login_required
 def einsatz_pdf(request, pk: int):
     obj = get_object_or_404(Einsatz, pk=pk)
-    css_url = request.build_absolute_uri(static('css/print.css'))
     html = render_to_string("einsatz/pdf.html", {"obj": obj})
-    pdf = render_html_to_pdf_bytes(html, base_url=request.build_absolute_uri("/"))
+    pdf_bytes = render_html_to_pdf_bytes(html, base_url=request.build_absolute_uri("/"))
     resp = HttpResponse(pdf_bytes, content_type="application/pdf")
-    resp["Content-Disposition"] = f'attachment; filename="Einsatz_{obj.nummer_formatiert}.pdf"'
+    safe_name = safe_filename(f"Einsatz_{obj.nummer_formatiert}.pdf")  # <-- safe
+    resp["Content-Disposition"] = f'attachment; filename="{safe_name}"'
     return resp
 
 @login_required

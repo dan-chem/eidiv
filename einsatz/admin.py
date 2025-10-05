@@ -8,6 +8,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
 from django.templatetags.static import static
+from core.utils.files import safe_filename
 
 from .models import (
     Einsatz,
@@ -170,11 +171,11 @@ class EinsatzAdmin(admin.ModelAdmin):
     # PDF inline anzeigen
     def view_pdf(self, request, pk: int, *args, **kwargs):
         obj = get_object_or_404(Einsatz, pk=pk)
-        css_url = request.build_absolute_uri(static('css/print.css'))
         html = render_to_string("einsatz/pdf.html", {"obj": obj})
         pdf = render_html_to_pdf_bytes(html, base_url=request.build_absolute_uri("/"))
         resp = HttpResponse(pdf, content_type="application/pdf")
-        resp["Content-Disposition"] = f'inline; filename="Einsatz_{obj.nummer_formatiert}.pdf"'
+        safe_name = safe_filename(f"Einsatz_{obj.nummer_formatiert}.pdf")  # <-- safe
+        resp["Content-Disposition"] = f'inline; filename="{safe_name}"'
         return resp
 
     # Mail erneut mit PDF-Anhang verschicken (zentraler Mail-Service)
