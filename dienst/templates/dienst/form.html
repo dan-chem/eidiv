@@ -58,14 +58,15 @@
         {% endfor %}
       </tbody>
     </table>
-    <button type="button"
-            class="mt-2 px-3 py-1 border rounded text-sm"
-            hx-get="{% url 'dienst_htmx_add_fahrzeug' %}"
-            hx-target="#fv_tbody"
-            hx-swap="beforeend"
-            data-formset-prefix="fv">
-    + Zeile hinzufügen
-    </button>
+        <button type="button"
+          class="mt-2 px-3 py-1 border rounded text-sm"
+          hx-get="{% url 'dienst_htmx_add_fahrzeug' %}"
+          hx-target="#fv_tbody"
+          hx-swap="beforeend"
+          hx-include="input[name='fv-TOTAL_FORMS']"
+          data-formset-prefix="fv">
+        + Zeile hinzufügen
+        </button>
   </section>
 
   <!-- Anhänger -->
@@ -96,14 +97,15 @@
         {% endfor %}
       </tbody>
     </table>
-    <button type="button"
-            class="mt-2 px-3 py-1 border rounded text-sm"
-            hx-get="{% url 'dienst_htmx_add_anhaenger' %}"
-            hx-target="#an_tbody"
-            hx-swap="beforeend"
-            data-formset-prefix="an">
-    + Zeile hinzufügen
-    </button>
+        <button type="button"
+          class="mt-2 px-3 py-1 border rounded text-sm"
+          hx-get="{% url 'dienst_htmx_add_anhaenger' %}"
+          hx-target="#an_tbody"
+          hx-swap="beforeend"
+          hx-include="input[name='an-TOTAL_FORMS']"
+          data-formset-prefix="an">
+        + Zeile hinzufügen
+        </button>
   </section>
 
   <!-- Abrollbehälter -->
@@ -130,6 +132,7 @@
           hx-get="{% url 'dienst_htmx_add_abroll' %}"
           hx-target="#ab_tbody"
           hx-swap="beforeend"
+          hx-include="input[name='ab-TOTAL_FORMS']"
           data-formset-prefix="ab">
     + Zeile hinzufügen
   </button>

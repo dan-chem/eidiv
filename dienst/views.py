@@ -235,7 +235,10 @@ def dienst_liste(request):
 def htmx_add_fahrzeug(request):
     d = Dienst()
     fs = DienstFahrzeugFormSet(instance=d, prefix="fv")
-    idx = fs.total_form_count()
+    try:
+        idx = int(request.GET.get("fv-TOTAL_FORMS") or fs.total_form_count())
+    except (ValueError, TypeError):
+        idx = fs.total_form_count()
     form = fs._construct_form(idx)
     return render(request, "dienst/_fahrzeug_row.html", {
         "form": form,
@@ -247,7 +250,10 @@ def htmx_add_fahrzeug(request):
 def htmx_add_abroll(request):
     d = Dienst()
     fs = DienstAbrollFormSet(instance=d, prefix="ab")
-    idx = fs.total_form_count()
+    try:
+        idx = int(request.GET.get("ab-TOTAL_FORMS") or fs.total_form_count())
+    except (ValueError, TypeError):
+        idx = fs.total_form_count()
     form = fs._construct_form(idx)
     return render(request, "dienst/_abroll_row.html", {
         "form": form,
@@ -259,7 +265,10 @@ def htmx_add_abroll(request):
 def htmx_add_anhaenger(request):
     d = Dienst()
     fs = DienstAnhaengerFormSet(instance=d, prefix="an")
-    idx = fs.total_form_count()
+    try:
+        idx = int(request.GET.get("an-TOTAL_FORMS") or fs.total_form_count())
+    except (ValueError, TypeError):
+        idx = fs.total_form_count()
     form = fs._construct_form(idx)
     return render(request, "dienst/_anhaenger_row.html", {
         "form": form,

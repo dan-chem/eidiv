@@ -236,7 +236,10 @@ def stichwort_options(request):
 def htmx_add_loeschwasser(request):
     e = Einsatz()
     fs = LoeschwasserFormSet(instance=e, prefix="lw")
-    idx = fs.total_form_count()
+    try:
+        idx = int(request.GET.get("lw-TOTAL_FORMS") or fs.total_form_count())
+    except (ValueError, TypeError):
+        idx = fs.total_form_count()
     form = fs._construct_form(idx)
     return render(request, "einsatz/_loeschwasser_row.html", {
         "form": form,
@@ -248,7 +251,10 @@ def htmx_add_loeschwasser(request):
 def htmx_add_einsatzmittel(request):
     e = Einsatz()
     fs = EinsatzmittelFormSet(instance=e, prefix="em")
-    idx = fs.total_form_count()
+    try:
+        idx = int(request.GET.get("em-TOTAL_FORMS") or fs.total_form_count())
+    except (ValueError, TypeError):
+        idx = fs.total_form_count()
     form = fs._construct_form(idx)
     return render(request, "einsatz/_einsatzmittel_row.html", {
         "form": form,
@@ -260,7 +266,10 @@ def htmx_add_einsatzmittel(request):
 def htmx_add_fahrzeug(request):
     e = Einsatz()
     fs = EinsatzFahrzeugFormSet(instance=e, prefix="vf")
-    idx = fs.total_form_count()
+    try:
+        idx = int(request.GET.get("vf-TOTAL_FORMS") or fs.total_form_count())
+    except (ValueError, TypeError):
+        idx = fs.total_form_count()
     form = fs._construct_form(idx)
     return render(request, "einsatz/_fahrzeug_row.html", {
         "form": form,
@@ -272,7 +281,10 @@ def htmx_add_fahrzeug(request):
 def htmx_add_abroll(request):
     e = Einsatz()
     fs = EinsatzAbrollFormSet(instance=e, prefix="ab")
-    idx = fs.total_form_count()
+    try:
+        idx = int(request.GET.get("ab-TOTAL_FORMS") or fs.total_form_count())
+    except (ValueError, TypeError):
+        idx = fs.total_form_count()
     form = fs._construct_form(idx)
     return render(request, "einsatz/_abroll_row.html", {
         "form": form,
@@ -284,7 +296,10 @@ def htmx_add_abroll(request):
 def htmx_add_anhaenger(request):
     e = Einsatz()
     fs = EinsatzAnhaengerFormSet(instance=e, prefix="an")
-    idx = fs.total_form_count()
+    try:
+        idx = int(request.GET.get("an-TOTAL_FORMS") or fs.total_form_count())
+    except (ValueError, TypeError):
+        idx = fs.total_form_count()
     form = fs._construct_form(idx)
     return render(request, "einsatz/_anhaenger_row.html", {
         "form": form,
@@ -296,7 +311,10 @@ def htmx_add_anhaenger(request):
 def htmx_add_ortsfeuerwehr(request):
     e = Einsatz()
     fs = EinsatzOrtsfeuerwehrFormSet(instance=e, prefix="of")
-    idx = fs.total_form_count()
+    try:
+        idx = int(request.GET.get("of-TOTAL_FORMS") or fs.total_form_count())
+    except (ValueError, TypeError):
+        idx = fs.total_form_count()
     form = fs._construct_form(idx)
     return render(request, "einsatz/_ortsfeuerwehr_row.html", {
         "form": form,
@@ -308,7 +326,10 @@ def htmx_add_ortsfeuerwehr(request):
 def htmx_add_zusatzstelle(request):
     e = Einsatz()
     fs = ZusatzstelleFormSet(instance=e, prefix="zs")
-    idx = fs.total_form_count()
+    try:
+        idx = int(request.GET.get("zs-TOTAL_FORMS") or fs.total_form_count())
+    except (ValueError, TypeError):
+        idx = fs.total_form_count()
     form = fs._construct_form(idx)
     return render(request, "einsatz/_zusatzstelle_row.html", {
         "form": form,

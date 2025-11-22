@@ -104,12 +104,13 @@
         {% for f in lw_fs %}{% include "einsatz/_loeschwasser_row.html" with form=f %}{% empty %}{% endfor %}
       </tbody>
     </table>
-    <button type="button"
-            class="mt-2 px-3 py-1 border rounded text-sm"
-            hx-get="{% url 'einsatz_htmx_add_loeschwasser' %}"
-            hx-target="#lw_tbody"
-            hx-swap="beforeend"
-            data-formset-prefix="lw">+ Zeile hinzufügen</button>
+        <button type="button"
+          class="mt-2 px-3 py-1 border rounded text-sm"
+          hx-get="{% url 'einsatz_htmx_add_loeschwasser' %}"
+          hx-target="#lw_tbody"
+          hx-swap="beforeend"
+          hx-include="input[name='lw-TOTAL_FORMS']"
+          data-formset-prefix="lw">+ Zeile hinzufügen</button>
   </section>
 
   <!-- Technische Hilfeleistung -->
@@ -135,8 +136,9 @@
         {% for f in vf_fs %}{% include "einsatz/_fahrzeug_row.html" with form=f %}{% empty %}{% endfor %}
       </tbody>
     </table>
-    <button type="button" class="mt-2 px-3 py-1 border rounded text-sm"
-            hx-get="{% url 'einsatz_htmx_add_fahrzeug' %}" hx-target="#vf_tbody" hx-swap="beforeend" data-formset-prefix="vf">+ Zeile hinzufügen</button>
+        <button type="button" class="mt-2 px-3 py-1 border rounded text-sm"
+          hx-get="{% url 'einsatz_htmx_add_fahrzeug' %}" hx-target="#vf_tbody" hx-swap="beforeend"
+          hx-include="input[name='vf-TOTAL_FORMS']" data-formset-prefix="vf">+ Zeile hinzufügen</button>
   </section>
 
   <!-- Abrollbehälter -->
@@ -149,8 +151,9 @@
         {% for f in ab_fs %}{% include "einsatz/_abroll_row.html" with form=f %}{% empty %}{% endfor %}
       </tbody>
     </table>
-    <button type="button" class="mt-2 px-3 py-1 border rounded text-sm"
-            hx-get="{% url 'einsatz_htmx_add_abroll' %}" hx-target="#ab_tbody" hx-swap="beforeend" data-formset-prefix="ab">+ Zeile hinzufügen</button>
+        <button type="button" class="mt-2 px-3 py-1 border rounded text-sm"
+          hx-get="{% url 'einsatz_htmx_add_abroll' %}" hx-target="#ab_tbody" hx-swap="beforeend"
+          hx-include="input[name='ab-TOTAL_FORMS']" data-formset-prefix="ab">+ Zeile hinzufügen</button>
   </section>
 
   <!-- Anhänger -->
@@ -163,8 +166,9 @@
         {% for f in an_fs %}{% include "einsatz/_anhaenger_row.html" with form=f %}{% empty %}{% endfor %}
       </tbody>
     </table>
-    <button type="button" class="mt-2 px-3 py-1 border rounded text-sm"
-            hx-get="{% url 'einsatz_htmx_add_anhaenger' %}" hx-target="#an_tbody" hx-swap="beforeend" data-formset-prefix="an">+ Zeile hinzufügen</button>
+        <button type="button" class="mt-2 px-3 py-1 border rounded text-sm"
+          hx-get="{% url 'einsatz_htmx_add_anhaenger' %}" hx-target="#an_tbody" hx-swap="beforeend"
+          hx-include="input[name='an-TOTAL_FORMS']" data-formset-prefix="an">+ Zeile hinzufügen</button>
   </section>
 
   <!-- Ortsfeuerwehren -->
@@ -177,8 +181,9 @@
         {% for f in of_fs %}{% include "einsatz/_ortsfeuerwehr_row.html" with form=f %}{% empty %}{% endfor %}
       </tbody>
     </table>
-    <button type="button" class="mt-2 px-3 py-1 border rounded text-sm"
-            hx-get="{% url 'einsatz_htmx_add_ofw' %}" hx-target="#of_tbody" hx-swap="beforeend" data-formset-prefix="of">+ Zeile hinzufügen</button>
+        <button type="button" class="mt-2 px-3 py-1 border rounded text-sm"
+          hx-get="{% url 'einsatz_htmx_add_ofw' %}" hx-target="#of_tbody" hx-swap="beforeend"
+          hx-include="input[name='of-TOTAL_FORMS']" data-formset-prefix="of">+ Zeile hinzufügen</button>
   </section>
 
   <!-- Zusätzliche Stellen -->
@@ -204,6 +209,7 @@
           hx-get="{% url 'einsatz_htmx_add_zusatzstelle' %}"
           hx-target="#zs_tbody"
           hx-swap="beforeend"
+          hx-include="input[name='zs-TOTAL_FORMS']"
           data-formset-prefix="zs">
     + Zeile hinzufügen
   </button>
@@ -220,8 +226,9 @@
         {% for f in em_fs %}{% include "einsatz/_einsatzmittel_row.html" with form=f %}{% empty %}{% endfor %}
       </tbody>
     </table>
-    <button type="button" class="mt-2 px-3 py-1 border rounded text-sm"
-            hx-get="{% url 'einsatz_htmx_add_einsatzmittel' %}" hx-target="#em_tbody" hx-swap="beforeend" data-formset-prefix="em">+ Zeile hinzufügen</button>
+        <button type="button" class="mt-2 px-3 py-1 border rounded text-sm"
+          hx-get="{% url 'einsatz_htmx_add_einsatzmittel' %}" hx-target="#em_tbody" hx-swap="beforeend"
+          hx-include="input[name='em-TOTAL_FORMS']" data-formset-prefix="em">+ Zeile hinzufügen</button>
   </section>
 
   <!-- Einsatzmaßnahmen -->
