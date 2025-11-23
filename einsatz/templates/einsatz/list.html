@@ -2,6 +2,21 @@
 {% block content %}
 <h1 class="text-xl font-semibold mb-4">Einsätze</h1>
 
+{% if years %}
+  <nav class="mb-4">
+    <ul class="flex gap-2 text-sm">
+      <li>
+        <a href="?q={{ q|urlencode }}" class="px-3 py-1 rounded border {% if not year %}bg-brand-100 text-brand-700{% else %}text-slate-700{% endif %}">Alle</a>
+      </li>
+      {% for y in years %}
+      <li>
+        <a href="?year={{ y }}&q={{ q|urlencode }}" class="px-3 py-1 rounded border {% if year|stringformat:"s" == y|stringformat:"s" %}bg-brand-100 text-brand-700{% else %}text-slate-700{% endif %}">{{ y }}</a>
+      </li>
+      {% endfor %}
+    </ul>
+  </nav>
+{% endif %}
+
 <form method="get" class="mb-4 flex gap-2 items-end">
   <div>
     <label class="block text-sm">Jahr</label>

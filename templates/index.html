@@ -69,7 +69,17 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <!-- Einsätze -->
       <div>
-        <h3 class="font-medium text-slate-700 mb-2">Einsätze</h3>
+        <div class="flex items-center justify-between mb-2">
+          <h3 class="font-medium text-slate-700">Einsätze</h3>
+          {% if einsatz_years %}
+            <div class="text-sm">
+              {% for y in einsatz_years %}
+                <a href="?e_year={{ y }}" class="px-2 py-0.5 rounded border text-slate-700 {% if e_year and e_year|add:'' == y|add:'' %}bg-brand-100 text-brand-700{% endif %}">{{ y }}</a>
+              {% endfor %}
+              <a href="?" class="px-2 py-0.5 rounded border text-slate-700 {% if not e_year %}bg-brand-100 text-brand-700{% endif %}">Alle</a>
+            </div>
+          {% endif %}
+        </div>
         <ul class="space-y-2">
           {% for e in recent_einsaetze %}
           <li class="flex items-start justify-between gap-3 rounded border p-3 hover:bg-slate-50">
@@ -93,7 +103,17 @@
 
       <!-- Dienste -->
       <div>
-        <h3 class="font-medium text-slate-700 mb-2">Dienste</h3>
+        <div class="flex items-center justify-between mb-2">
+          <h3 class="font-medium text-slate-700">Dienste</h3>
+          {% if dienst_years %}
+            <div class="text-sm">
+              {% for y in dienst_years %}
+                <a href="?d_year={{ y }}" class="px-2 py-0.5 rounded border text-slate-700 {% if d_year and d_year|add:'' == y|add:'' %}bg-brand-100 text-brand-700{% endif %}">{{ y }}</a>
+              {% endfor %}
+              <a href="?" class="px-2 py-0.5 rounded border text-slate-700 {% if not d_year %}bg-brand-100 text-brand-700{% endif %}">Alle</a>
+            </div>
+          {% endif %}
+        </div>
         <ul class="space-y-2">
           {% for d in recent_dienste %}
           <li class="flex items-start justify-between gap-3 rounded border p-3 hover:bg-slate-50">

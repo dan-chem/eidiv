@@ -217,8 +217,9 @@ def dienst_pdf(request, pk: int):
 def dienst_liste(request):
     q = request.GET.get("q", "").strip()
     year = request.GET.get("year", "").strip()
-
     qs = Dienst.objects.order_by("-year", "-seq")
+    years_qs = Dienst.objects.order_by("-year").values_list("year", flat=True).distinct()
+    years = [y for y in years_qs if y is not None]
     if year.isdigit():
         qs = qs.filter(year=int(year))
     if q:
@@ -227,7 +228,10 @@ def dienst_liste(request):
     paginator = Paginator(qs, 20)
     page_obj = paginator.get_page(request.GET.get("page"))
 
-    return render(request, "dienst/list.html", {"page_obj": page_obj, "q": q, "year": year})
+    return render(request, "dienst/list.html", {
+        "page_obj": page_obj, "q": q, "year": year,
+        "years": years,
+    })
 
 # ---------- HTMX Add-Row ----------
 

@@ -17,7 +17,15 @@ def assign_running_number(instance, model_cls):
     if getattr(instance, "year", None) and getattr(instance, "seq", None):
         return
     with transaction.atomic():
-        year = timezone.now().year
+        # Jahr ableiten aus start_dt, falls vorhanden (z. B. bei Erfassung)
+        year = None
+        try:
+            if getattr(instance, "start_dt", None):
+                year = instance.start_dt.year
+        except Exception:
+            year = None
+        if not year:
+            year = timezone.now().year
         max_seq = model_cls.objects.select_for_update().filter(year=year).aggregate(Max("seq"))["seq__max"] or 0
         instance.year = year
         instance.seq = max_seq + 1
