@@ -79,6 +79,20 @@
     box-shadow: 0 0 0 3px rgba(37,99,235,.2);
   }
 
+  /* Einheitliches Styling für Eingaben innerhalb von Tabellen (Formset-Zeilen) */
+  table input, table select, table textarea {
+    padding: .375rem .5rem;
+    border: 1px solid #e5e7eb;
+    border-radius: .375rem;
+    background: transparent;
+  }
+  /* Vergrößere Abstand der Tabellenzellen und der Grid-Felder in Karten */
+  table th, table td { padding: .75rem .75rem; }
+  section.bg-white.p-4.rounded.shadow .grid { gap: 1.25rem; }
+
+  /* Verberge automatisch das versteckte id-Feld in Formsets (sichtbare ID-Felder stören UI) */
+  input[name$='-id'] { display: none !important; }
+
   /* Badges */
   .badge {
     display: inline-block;
@@ -130,7 +144,7 @@ td.agt-off input {
       </picture>
       <span class="font-semibold text-slate-800">EiDiV</span>
       {% if GIT_TAG %}
-        <span class="text-xs text-slate-500 ml-2">v{{ GIT_TAG }}</span>
+        <span class="text-xs text-slate-500 ml-2">{{ GIT_TAG }}</span>
       {% endif %}
     </a>
     <div class="flex items-center gap-4 text-sm">
@@ -158,6 +172,37 @@ td.agt-off input {
       if (!prefix) return;
       const total = document.querySelector(`input[name="${prefix}-TOTAL_FORMS"]`);
       if (total) total.value = String(parseInt(total.value || "0") + 1);
+    });
+  </script>
+  <!-- Entfernen / Löschen einer hinzugefügten Zeile: markiert vorhandene Löschbox oder fügt ein verstecktes DELETE-Feld hinzu und versteckt die Zeile -->
+  <script>
+    document.body.addEventListener('click', function (e) {
+      const btn = e.target.closest('[data-action="remove-form-row"]');
+      if (!btn) return;
+      e.preventDefault();
+      const formPrefix = btn.dataset.formPrefix; // z.B. vf-3
+      if (!formPrefix) return;
+      // Name der DELETE-Checkbox für dieses Formular
+      const deleteName = `${formPrefix}-DELETE`;
+      // Die Zeile ist die nächste tr-Element an oder über dem Button
+      const row = btn.closest('tr');
+      if (!row) return;
+      // Suche nach existierender DELETE input/checkbox
+      let del = row.querySelector(`input[name="${deleteName}"]`);
+      if (del) {
+        // existierende Checkbox (bei gespeicherten Objekten) ankreuzen und ausblenden
+        if (del.type === 'checkbox') del.checked = true;
+        else del.value = 'on';
+        row.style.display = 'none';
+        return;
+      }
+      // Für neue, noch nicht gespeicherte Formulare: fügen wir ein verstecktes DELETE-Feld hinzu (Wert 'on')
+      del = document.createElement('input');
+      del.type = 'hidden';
+      del.name = deleteName;
+      del.value = 'on';
+      row.appendChild(del);
+      row.style.display = 'none';
     });
   </script>
 </body>

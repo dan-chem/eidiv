@@ -39,7 +39,6 @@
         <tr class="text-left border-b">
           <th class="py-2">Fahrzeug</th>
           <th class="py-2" style="width:120px;">km</th>
-          <th class="py-2" style="width:100px;">Std.</th>
           <th class="py-2" style="width:100px;">Aktion</th>
         </tr>
       </thead>
@@ -48,9 +47,13 @@
         <tr class="border-b">
           <td class="py-1">{{ f.fahrzeug }}</td>
           <td class="py-1">{{ f.kilometer }}</td>
-          <td class="py-1">{{ f.stunden }}</td>
+          <!-- Std. entfernt für Neuanlage -->
           <td class="py-1">
-            {% if f.instance.pk %}{{ f.DELETE }} löschen{% endif %}
+            {% if f.instance.pk %}
+              {{ f.DELETE }} löschen
+            {% else %}
+              <button type="button" class="text-sm text-red-600" data-action="remove-form-row" data-form-prefix="{{ f.prefix }}">Löschen</button>
+            {% endif %}
             {{ f.id }}
           </td>
         </tr>
@@ -78,7 +81,6 @@
         <tr class="text-left border-b">
           <th class="py-2">Anhänger</th>
           <th class="py-2" style="width:120px;">km</th>
-          <th class="py-2" style="width:100px;">Std.</th>
           <th class="py-2" style="width:100px;">Aktion</th>
         </tr>
       </thead>
@@ -87,9 +89,13 @@
         <tr class="border-b">
           <td class="py-1">{{ a.anhaenger }}</td>
           <td class="py-1">{{ a.kilometer }}</td>
-          <td class="py-1">{{ a.stunden }}</td>
+          <!-- Std. entfernt für Neuanlage -->
           <td class="py-1">
-            {% if a.instance.pk %}{{ a.DELETE }} löschen{% endif %}
+            {% if a.instance.pk %}
+              {{ a.DELETE }} löschen
+            {% else %}
+              <button type="button" class="text-sm text-red-600" data-action="remove-form-row" data-form-prefix="{{ a.prefix }}">Löschen</button>
+            {% endif %}
             {{ a.id }}
           </td>
         </tr>
@@ -113,14 +119,13 @@
   <h2 class="font-semibold mb-3">Abrollbehälter</h2>
   {{ ab_formset.management_form }}
   <table class="w-full text-sm">
-    <thead>
+      <thead>
       <tr class="text-left border-b">
         <th class="py-2">Abrollbehälter</th>
-        <th class="py-2" style="width:120px;">erforderlich</th>
         <th class="py-2" style="width:100px;">Aktion</th>
       </tr>
     </thead>
-    <tbody id="ab_tbody">
+      <tbody id="ab_tbody">
       {% for f in ab_formset %}
         {% include "dienst/_abroll_row.html" with form=f %}
       {% empty %}

@@ -59,7 +59,8 @@ class EinsatzEinsatzmittelInline(admin.TabularInline):
 class EinsatzFahrzeugInline(admin.TabularInline):
     model = EinsatzFahrzeug
     extra = 0
-    fields = ("fahrzeug", "kilometer", "stunden", "erforderlich")
+    # Stunden werden in der Neuanlage nicht mehr erfasst; Admin-Inline zeigt daher nur Fahrzeug, km und erforderlich
+    fields = ("fahrzeug", "kilometer", "erforderlich")
     autocomplete_fields = ("fahrzeug",)
 
 class EinsatzAbrollInline(admin.TabularInline):
@@ -71,7 +72,8 @@ class EinsatzAbrollInline(admin.TabularInline):
 class EinsatzAnhaengerInline(admin.TabularInline):
     model = EinsatzAnhaenger
     extra = 0
-    fields = ("anhaenger", "kilometer", "stunden", "erforderlich")
+    # Stunden nicht in Neuanlage; entfernen aus Inline-Ansicht
+    fields = ("anhaenger", "kilometer", "erforderlich")
     autocomplete_fields = ("anhaenger",)
 
 class EinsatzOrtsfeuerwehrInline(admin.TabularInline):

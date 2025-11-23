@@ -26,20 +26,22 @@ from .models import (
 class DienstFahrzeugInline(admin.TabularInline):
     model = DienstFahrzeug
     extra = 0
-    fields = ("fahrzeug", "kilometer", "stunden")
+    # In der Neuanlage wird 'stunden' nicht mehr als Spalte gezeigt; Admin-Inline reduziert sich entsprechend
+    fields = ("fahrzeug", "kilometer")
     # optional, wenn du viele Fahrzeuge hast: Autocomplete
     autocomplete_fields = ("fahrzeug",)
 
 class DienstAbrollInline(admin.TabularInline):
     model = DienstAbrollbehaelter
     extra = 0
-    fields = ("abrollbehaelter", "erforderlich")
+    # 'erforderlich' wird in der Dienst-Neuanlage nicht erfasst; Admin-Inline zeigt nur Behälter
+    fields = ("abrollbehaelter",)
     autocomplete_fields = ("abrollbehaelter",)
 
 class DienstAnhaengerInline(admin.TabularInline):
     model = DienstAnhaenger
     extra = 0
-    fields = ("anhaenger", "kilometer", "stunden")
+    fields = ("anhaenger", "kilometer")
     autocomplete_fields = ("anhaenger",)
 
 class DienstTeilnahmeInline(admin.TabularInline):

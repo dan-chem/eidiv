@@ -99,19 +99,19 @@
 <section>
   <h2>Fahrzeuge / Abrollbehälter / Anhänger / Ortsfeuerwehren</h2>
   <table>
-    <thead><tr><th>Typ</th><th>km</th><th>Std.</th><th>erforderlich</th></tr></thead>
+    <thead><tr><th>Typ</th><th>km</th><th>erforderlich</th></tr></thead>
     <tbody>
       {% for ef in obj.einsatzfahrzeug_set.all %}
-      <tr><td>{{ ef.fahrzeug }}</td><td>{{ ef.kilometer|default:"—" }}</td><td>{{ ef.stunden|default:"—" }}</td><td>{{ ef.erforderlich|yesno:"Ja,Nein" }}</td></tr>
+      <tr><td>{{ ef.fahrzeug }}</td><td>{{ ef.kilometer|default:"—" }}</td><td>{{ ef.erforderlich|yesno:"Ja,Nein" }}</td></tr>
       {% endfor %}
       {% for ea in obj.einsatzanhaenger_set.all %}
-      <tr><td>{{ ea.anhaenger }}</td><td>{{ ea.kilometer|default:"—" }}</td><td>{{ ea.stunden|default:"—" }}</td><td>{{ ea.erforderlich|yesno:"Ja,Nein" }}</td></tr>
+      <tr><td>{{ ea.anhaenger }}</td><td>{{ ea.kilometer|default:"—" }}</td><td>{{ ea.erforderlich|yesno:"Ja,Nein" }}</td></tr>
       {% endfor %}
       {% for ab in obj.einsatzabrollbehaelter_set.all %}
-      <tr><td>{{ ab.abrollbehaelter }}</td><td>—</td><td>—</td><td>{{ ab.erforderlich|yesno:"Ja,Nein" }}</td></tr>
+      <tr><td>{{ ab.abrollbehaelter }}</td><td>—</td><td>{{ ab.erforderlich|yesno:"Ja,Nein" }}</td></tr>
       {% endfor %}
       {% for ofw in obj.einsatzortsfeuerwehr_set.all %}
-      <tr><td>{{ ofw.ortsfeuerwehr }}</td><td>—</td><td>—</td><td>{{ ofw.erforderlich|yesno:"Ja,Nein" }}</td></tr>
+      <tr><td>{{ ofw.ortsfeuerwehr }}</td><td>—</td><td>{{ ofw.erforderlich|yesno:"Ja,Nein" }}</td></tr>
       {% endfor %}
     </tbody>
   </table>

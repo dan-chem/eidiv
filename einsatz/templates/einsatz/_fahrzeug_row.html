@@ -7,16 +7,17 @@
     {{ form.kilometer }}
     {% if form.kilometer.errors %}<div class="text-red-600 text-xs">{{ form.kilometer.errors|join:", " }}</div>{% endif %}
   </td>
-  <td class="py-1">
-    {{ form.stunden }}
-    {% if form.stunden.errors %}<div class="text-red-600 text-xs">{{ form.stunden.errors|join:", " }}</div>{% endif %}
-  </td>
+  <!-- Std. entfernt für Neuanlage -->
   <td class="py-1" style="width:120px;">
     {{ form.erforderlich }}
   </td>
   <td class="py-1" style="width:100px;">
     {% if form.non_field_errors %}<div class="text-red-600 text-xs">{{ form.non_field_errors|join:", " }}</div>{% endif %}
-    {% if form.instance.pk %}{{ form.DELETE }} löschen{% endif %}
+    {% if form.instance.pk %}
+      {{ form.DELETE }} löschen
+    {% else %}
+      <button type="button" class="text-sm text-red-600" data-action="remove-form-row" data-form-prefix="{{ form.prefix }}">Löschen</button>
+    {% endif %}
     {{ form.id }}
   </td>
 </tr>

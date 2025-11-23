@@ -5,7 +5,11 @@
   </td>
   <td class="py-1" style="width:100px;">
     {% if form.non_field_errors %}<div class="text-red-600 text-xs">{{ form.non_field_errors|join:", " }}</div>{% endif %}
-    {% if form.instance.pk %}{{ form.DELETE }} löschen{% endif %}
+    {% if form.instance.pk %}
+      {{ form.DELETE }} löschen
+    {% else %}
+      <button type="button" class="text-sm text-red-600" data-action="remove-form-row" data-form-prefix="{{ form.prefix }}">Löschen</button>
+    {% endif %}
     {{ form.id }}
   </td>
 </tr>

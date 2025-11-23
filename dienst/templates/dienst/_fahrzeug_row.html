@@ -1,9 +1,12 @@
 <tr class="border-b">
   <td class="py-1">{{ form.fahrzeug }}</td>
   <td class="py-1">{{ form.kilometer }}</td>
-  <td class="py-1">{{ form.stunden }}</td>
   <td class="py-1">
-    {% if form.instance.pk %}{{ form.DELETE }} löschen{% endif %}
+    {% if form.instance.pk %}
+      {{ form.DELETE }} löschen
+    {% else %}
+      <button type="button" class="text-sm text-red-600" data-action="remove-form-row" data-form-prefix="{{ form.prefix }}">Löschen</button>
+    {% endif %}
     {{ form.id }}
   </td>
 </tr>

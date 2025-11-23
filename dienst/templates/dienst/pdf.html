@@ -41,24 +41,10 @@
 <section>
   <h2>Fahrzeuge</h2>
   <table>
-    <thead><tr><th>Fahrzeug</th><th>km</th><th>Std.</th></tr></thead>
+    <thead><tr><th>Fahrzeug</th><th>km</th></tr></thead>
     <tbody>
       {% for f in obj.dienstfahrzeug_set.all %}
-      <tr><td>{{ f.fahrzeug }}</td><td>{{ f.kilometer|default:"—" }}</td><td>{{ f.stunden|default:"—" }}</td></tr>
-      {% empty %}
-      <tr><td colspan="3">—</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</section>
-
-<section>
-  <h2>Abrollbehälter</h2>
-  <table>
-    <thead><tr><th>Abrollbehälter</th><th>erforderlich</th></tr></thead>
-    <tbody>
-      {% for ab in obj.dienstabrollbehaelter_set.all %}
-      <tr><td>{{ ab.abrollbehaelter }}</td><td>{{ ab.erforderlich|yesno:"Ja,Nein" }}</td></tr>
+      <tr><td>{{ f.fahrzeug }}</td><td>{{ f.kilometer|default:"—" }}</td></tr>
       {% empty %}
       <tr><td colspan="2">—</td></tr>
       {% endfor %}
@@ -67,14 +53,28 @@
 </section>
 
 <section>
+  <h2>Abrollbehälter</h2>
+  <table>
+    <thead><tr><th>Abrollbehälter</th></tr></thead>
+    <tbody>
+      {% for ab in obj.dienstabrollbehaelter_set.all %}
+      <tr><td>{{ ab.abrollbehaelter }}</td></tr>
+      {% empty %}
+      <tr><td>—</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+<section>
   <h2>Anhänger</h2>
   <table>
-    <thead><tr><th>Anhänger</th><th>km</th><th>Std.</th></tr></thead>
+    <thead><tr><th>Anhänger</th><th>km</th></tr></thead>
     <tbody>
       {% for a in obj.dienstanhaenger_set.all %}
-      <tr><td>{{ a.anhaenger }}</td><td>{{ a.kilometer|default:"—" }}</td><td>{{ a.stunden|default:"—" }}</td></tr>
+      <tr><td>{{ a.anhaenger }}</td><td>{{ a.kilometer|default:"—" }}</td></tr>
       {% empty %}
-      <tr><td colspan="3">—</td></tr>
+      <tr><td colspan="2">—</td></tr>
       {% endfor %}
     </tbody>
   </table>

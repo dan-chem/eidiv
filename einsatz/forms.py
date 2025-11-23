@@ -58,8 +58,8 @@ class EinsatzForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         # Nur aktive Stichworte anzeigen
         self.fields["stichwort"].queryset = Einsatzstichwort.objects.filter(aktiv=True)
-        # Kategorienauswahl füllen
-        self.fields["stichwort_kategorie"].choices = Einsatzstichwort.KATEGORIE_CHOICES
+        # Kategorienauswahl füllen (mit leerer Option als Platzhalter)
+        self.fields["stichwort_kategorie"].choices = [("", "---------")] + list(Einsatzstichwort.KATEGORIE_CHOICES)
         # Initiale Kategorie aus dem (vorhandenen) Stichwort ableiten
         if self.instance and getattr(self.instance, "stichwort_id", None):
             self.fields["stichwort_kategorie"].initial = self.instance.stichwort.kategorie

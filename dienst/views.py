@@ -113,6 +113,10 @@ def dienst_neu(request):
         fv_formset = DienstFahrzeugFormSet(request.POST, instance=d, prefix="fv")
         ab_formset = DienstAbrollFormSet(request.POST, instance=d, prefix="ab")
         an_formset = DienstAnhaengerFormSet(request.POST, instance=d, prefix="an")
+        # In der Neuanlage soll das Feld 'erforderlich' bei Abrollbehältern nicht zwingend sein
+        for f in ab_formset.forms:
+            if 'erforderlich' in f.fields:
+                f.fields['erforderlich'].required = False
         tn_formset = TeilnahmeFS(request.POST, prefix="tn")
 
         if form.is_valid() and fv_formset.is_valid() and ab_formset.is_valid() and an_formset.is_valid() and tn_formset.is_valid():
@@ -177,6 +181,10 @@ def dienst_neu(request):
         fv_formset = DienstFahrzeugFormSet(instance=d, prefix="fv")
         ab_formset = DienstAbrollFormSet(instance=d, prefix="ab")
         an_formset = DienstAnhaengerFormSet(instance=d, prefix="an")
+        # Feld 'erforderlich' bei Abrollbehältern in der Neuanlage nicht required
+        for f in ab_formset.forms:
+            if 'erforderlich' in f.fields:
+                f.fields['erforderlich'].required = False
 
         members_active = list(Mitglied.objects.filter(jugendfeuerwehr=False).order_by("name", "vorname"))
         members_jf = list(Mitglied.objects.filter(jugendfeuerwehr=True).order_by("name", "vorname"))
