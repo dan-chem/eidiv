@@ -1,10 +1,27 @@
+from unittest.mock import patch
+
 from django.contrib.auth import get_user_model
 from django.forms import formset_factory
 from django.test import TestCase
 from django.urls import reverse
 
+from eidiv.context_processors import git_tag
+
 from .forms import TeilnahmeAlleMitgliederBaseFormSet, TeilnahmeAlleMitgliederForm
 from .models import Mitglied
+
+
+class VersionContextProcessorTests(TestCase):
+    def test_default_version_matches_application_release(self):
+        with patch.dict(
+            "eidiv.context_processors.os.environ",
+            {"GIT_TAG": "", "VERSION": ""},
+        ):
+            self.assertEqual(git_tag(None)["GIT_TAG"], "v1.3")
+
+    def test_deployment_version_can_override_application_release(self):
+        with patch.dict("eidiv.context_processors.os.environ", {"GIT_TAG": "v9.9"}):
+            self.assertEqual(git_tag(None)["GIT_TAG"], "v9.9")
 
 
 class MitgliedAgtApiTests(TestCase):

@@ -1,27 +1,14 @@
 import os
-import subprocess
-from pathlib import Path
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+from core import __version__
 
 
 def git_tag(request):
-    """Context-processor: stellt die aktuelle Git-Tag-Version zur Verfügung.
+    """Stellt die sichtbare Release-Version fuer den Seitenkopf bereit.
 
-    Versucht zuerst, die Umgebungsvariable `GIT_TAG` zu lesen (für Deployments ohne .git).
-    Falls nicht gesetzt, wird im Repository `git describe --tags --abbrev=0` ausgeführt.
-    Bei Fehlern wird ein leerer String geliefert.
+    Deployments koennen die Anzeige weiterhin explizit per Umgebungsvariable
+    ueberschreiben. Ohne Override wird die Version aus dem Anwendungscode
+    verwendet, damit die Anzeige nicht von vorhandenen Git-Metadaten abhaengt.
     """
-    tag = os.environ.get("GIT_TAG") or os.environ.get("VERSION")
-    if not tag:
-        try:
-            # Führe git describe im Projekt-Root aus
-            tag = subprocess.check_output(
-                ["git", "describe", "--tags", "--abbrev=0"],
-                cwd=BASE_DIR,
-                stderr=subprocess.DEVNULL,
-                text=True,
-            ).strip()
-        except Exception:
-            tag = ""
+    tag = os.environ.get("GIT_TAG") or os.environ.get("VERSION") or f"v{__version__}"
     return {"GIT_TAG": tag}
