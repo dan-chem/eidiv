@@ -1,6 +1,7 @@
 # einsatz/forms.py
 from django import forms
 from django.forms import inlineformset_factory
+from core.forms import split_datetime_local_field
 from core.models import Einsatzstichwort
 from .models import (
     Einsatz, EinsatzPerson, EinsatzLoeschwasser, EinsatzEinsatzmittel,
@@ -9,6 +10,8 @@ from .models import (
 )
 
 class EinsatzForm(forms.ModelForm):
+    start_dt = split_datetime_local_field()
+    ende_dt = split_datetime_local_field()
     stichwort_kategorie = forms.ChoiceField(
         label="Einsatzkategorie",
         required=False,
@@ -31,8 +34,6 @@ class EinsatzForm(forms.ModelForm):
         ]
         widgets = {
             "stichwort": forms.Select(attrs={"class": "mt-1 w-full border rounded px-3 py-2", "id": "id_stichwort"}),
-            "start_dt": forms.DateTimeInput(attrs={"type": "datetime-local", "class": "mt-1 w-full border rounded px-3 py-2"}),
-            "ende_dt": forms.DateTimeInput(attrs={"type": "datetime-local", "class": "mt-1 w-full border rounded px-3 py-2"}),
             "einsatzleiter": forms.Select(attrs={"class": "mt-1 w-full border rounded px-3 py-2"}),
             "einsatzleiter_text": forms.TextInput(attrs={"class": "mt-1 w-full border rounded px-3 py-2"}),
             "meldende_stelle": forms.Select(attrs={"class": "mt-1 w-full border rounded px-3 py-2"}),
@@ -124,7 +125,7 @@ EinsatzFahrzeugFormSet = inlineformset_factory(
     model=EinsatzFahrzeug,
     fields=["fahrzeug", "kilometer", "stunden", "erforderlich"],
     widgets={
-        "fahrzeug": forms.Select(attrs={"class": "w-full border rounded px-2 py-1"}),
+        "fahrzeug": forms.Select(attrs={"class": "w-full border rounded px-2 py-1", "data-exclusive-select": "fahrzeug"}),
         "kilometer": forms.NumberInput(attrs={"class": "w-full border rounded px-2 py-1", "min": 0}),
         "stunden": forms.NumberInput(attrs={"class": "w-full border rounded px-2 py-1", "step": "0.01", "min": 0}),
     },
@@ -137,7 +138,7 @@ EinsatzAbrollFormSet = inlineformset_factory(
     model=EinsatzAbrollbehaelter,
     fields=["abrollbehaelter", "erforderlich"],
     widgets={
-        "abrollbehaelter": forms.Select(attrs={"class": "w-full border rounded px-2 py-1"}),
+        "abrollbehaelter": forms.Select(attrs={"class": "w-full border rounded px-2 py-1", "data-exclusive-select": "abrollbehaelter"}),
     },
     extra=0,
     can_delete=True,
@@ -148,7 +149,7 @@ EinsatzAnhaengerFormSet = inlineformset_factory(
     model=EinsatzAnhaenger,
     fields=["anhaenger", "kilometer", "stunden", "erforderlich"],
     widgets={
-        "anhaenger": forms.Select(attrs={"class": "w-full border rounded px-2 py-1"}),
+        "anhaenger": forms.Select(attrs={"class": "w-full border rounded px-2 py-1", "data-exclusive-select": "anhaenger"}),
         "kilometer": forms.NumberInput(attrs={"class": "w-full border rounded px-2 py-1", "min": 0}),
         "stunden": forms.NumberInput(attrs={"class": "w-full border rounded px-2 py-1", "step": "0.01", "min": 0}),
     },

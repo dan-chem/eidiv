@@ -33,8 +33,12 @@ def index(request):
 
     # Ggf. per GET-Parameter gefilterte Anzeige (recent lists)
 
-    recent_einsaetze_qs = Einsatz.objects.select_related("stichwort").order_by("-year", "-seq")
-    recent_dienste_qs = Dienst.objects.order_by("-year", "-seq")
+    recent_einsaetze_qs = Einsatz.objects.select_related("stichwort").filter(
+        start_dt__lte=timezone.now()
+    ).order_by("-start_dt", "-year", "-seq")
+    recent_dienste_qs = Dienst.objects.filter(
+        start_dt__lte=timezone.now()
+    ).order_by("-start_dt", "-year", "-seq")
     if e_year and e_year.isdigit():
         recent_einsaetze_qs = recent_einsaetze_qs.filter(year=int(e_year))
     if d_year and d_year.isdigit():

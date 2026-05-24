@@ -1,0 +1,161 @@
+<div class="space-y-4 text-sm">
+  <section class="rounded border p-3">
+    <h3 class="font-semibold text-slate-700 mb-2">Allgemeine Einsatzdaten</h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+      <div><span class="font-medium">Stichwort:</span> {{ obj.stichwort|default:"-" }}</div>
+      <div><span class="font-medium">Kategorie:</span> {{ obj.stichwort.get_kategorie_display|default:"-" }}</div>
+      <div><span class="font-medium">Beginn:</span> {{ obj.start_dt|date:"d.m.Y H:i" }}</div>
+      <div><span class="font-medium">Ende:</span> {{ obj.ende_dt|date:"d.m.Y H:i" }}</div>
+      <div><span class="font-medium">Dauer:</span> {{ obj.dauer_stunden }} h</div>
+      <div><span class="font-medium">Meldende Stelle:</span> {{ obj.meldende_stelle|default:"-" }}</div>
+      <div><span class="font-medium">Einsatzleiter (Mitglied):</span> {{ obj.einsatzleiter|default:"-" }}</div>
+      <div><span class="font-medium">Einsatzleiter (Text):</span> {{ obj.einsatzleiter_text|default:"-" }}</div>
+      <div><span class="font-medium">Erfasst:</span> {{ obj.created_at|date:"d.m.Y H:i" }}</div>
+    </div>
+  </section>
+
+  <section class="rounded border p-3">
+    <h3 class="font-semibold text-slate-700 mb-2">Einsatzort</h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+      <div><span class="font-medium">Objektname:</span> {{ obj.objektname|default:"-" }}</div>
+      <div><span class="font-medium">Straße/Hausnummer:</span> {{ obj.strasse_hausnr|default:"-" }}</div>
+      <div><span class="font-medium">PLZ/Ort:</span> {{ obj.plz_ort|default:"-" }}</div>
+      <div><span class="font-medium">Gemeinde:</span> {{ obj.einsatzgemeinde|default:"-" }}</div>
+      <div><span class="font-medium">Landkreis:</span> {{ obj.landkreis|default:"-" }}</div>
+    </div>
+  </section>
+
+  <section class="rounded border p-3">
+    <h3 class="font-semibold text-slate-700 mb-2">Angaben zur Person</h3>
+    {% if obj.person %}
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+        <div><span class="font-medium">Typ:</span> {{ obj.person.get_typ_display }}</div>
+        <div><span class="font-medium">Name:</span> {{ obj.person.name_vorname }}</div>
+        <div><span class="font-medium">Straße/Hausnummer:</span> {{ obj.person.strasse_hausnr|default:"-" }}</div>
+        <div><span class="font-medium">PLZ/Ort:</span> {{ obj.person.plz_ort|default:"-" }}</div>
+        <div><span class="font-medium">Telefon:</span> {{ obj.person.telefon|default:"-" }}</div>
+        <div><span class="font-medium">KFZ-Kennzeichen:</span> {{ obj.person.kfz_kennz|default:"-" }}</div>
+        <div><span class="font-medium">Kostenbefreit:</span> {{ obj.person.kostenbefreit|yesno:"Ja,Nein" }}</div>
+        <div><span class="font-medium">Begründung:</span> {{ obj.person.begruendung|default:"-" }}</div>
+      </div>
+    {% else %}
+      <div class="text-slate-500">-</div>
+    {% endif %}
+  </section>
+
+  <section class="rounded border p-3">
+    <h3 class="font-semibold text-slate-700 mb-2">Brand und technische Hilfeleistung</h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+      <div><span class="font-medium">Brandumfang:</span> {{ obj.brandumfang|default:"-" }}</div>
+      <div><span class="font-medium">Brandausbreitung:</span> {{ obj.brandausbreitung|default:"-" }}</div>
+      <div><span class="font-medium">Brandgut:</span> {{ obj.brandgut|default:"-" }}</div>
+      <div><span class="font-medium">Brandobjekt:</span> {{ obj.brandobjekt|default:"-" }}</div>
+      <div><span class="font-medium">Schadensereignis:</span> {{ obj.schadensereignis|default:"-" }}</div>
+      <div><span class="font-medium">Personenrettung:</span> {{ obj.personenrettung_typ|default:"-" }}</div>
+      <div><span class="font-medium">Anzahl geretteter Personen:</span> {{ obj.personenrettung_anzahl|default_if_none:"-" }}</div>
+      <div><span class="font-medium">Sicherheitswache:</span> {{ obj.sicherheitswache|default:"-" }}</div>
+      <div><span class="font-medium">Fehlalarm:</span> {{ obj.fehlalarm|default:"-" }}</div>
+      <div><span class="font-medium">Sonstige:</span> {{ obj.sonstige|default:"-" }}</div>
+    </div>
+    <h4 class="font-medium mt-3 mb-1">Löschwasserentnahmestellen</h4>
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead><tr><th>Entnahmestelle</th><th>Menge</th></tr></thead>
+        <tbody>
+          {% for lw in obj.loeschwasser.all %}
+            <tr><td>{{ lw.entnahmestelle }}</td><td>{{ lw.menge|default_if_none:"-" }}</td></tr>
+          {% empty %}
+            <tr><td colspan="2">-</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="rounded border p-3">
+    <h3 class="font-semibold text-slate-700 mb-2">Fahrzeuge, Anhänger und beteiligte Stellen</h3>
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead><tr><th>Art</th><th>Bezeichnung</th><th>km</th><th>Std.</th><th>Erforderlich</th></tr></thead>
+        <tbody>
+          {% for row in obj.einsatzfahrzeug_set.all %}
+            <tr><td>Fahrzeug</td><td>{{ row.fahrzeug }}</td><td>{{ row.kilometer|default_if_none:"-" }}</td><td>{{ row.stunden|default_if_none:"-" }}</td><td>{{ row.erforderlich|yesno:"Ja,Nein" }}</td></tr>
+          {% endfor %}
+          {% for row in obj.einsatzanhaenger_set.all %}
+            <tr><td>Anhänger</td><td>{{ row.anhaenger }}</td><td>{{ row.kilometer|default_if_none:"-" }}</td><td>{{ row.stunden|default_if_none:"-" }}</td><td>{{ row.erforderlich|yesno:"Ja,Nein" }}</td></tr>
+          {% endfor %}
+          {% for row in obj.einsatzabrollbehaelter_set.all %}
+            <tr><td>Abrollbehälter</td><td>{{ row.abrollbehaelter }}</td><td>-</td><td>-</td><td>{{ row.erforderlich|yesno:"Ja,Nein" }}</td></tr>
+          {% endfor %}
+          {% for row in obj.einsatzortsfeuerwehr_set.all %}
+            <tr><td>Ortsfeuerwehr</td><td>{{ row.ortsfeuerwehr }}</td><td>-</td><td>-</td><td>{{ row.erforderlich|yesno:"Ja,Nein" }}</td></tr>
+          {% empty %}
+          {% endfor %}
+          {% if not obj.einsatzfahrzeug_set.all and not obj.einsatzanhaenger_set.all and not obj.einsatzabrollbehaelter_set.all and not obj.einsatzortsfeuerwehr_set.all %}
+            <tr><td colspan="5">-</td></tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+    <h4 class="font-medium mt-3 mb-1">Zusätzliche anwesende Stellen</h4>
+    <ul class="list-disc ml-5">
+      {% for row in obj.einsatzzusatzstelle_set.all %}
+        <li>{{ row.zusatzstelle }}</li>
+      {% empty %}
+        <li>-</li>
+      {% endfor %}
+    </ul>
+  </section>
+
+  <section class="rounded border p-3">
+    <h3 class="font-semibold text-slate-700 mb-2">Einsatzmittel und Maßnahmen</h3>
+    <div class="overflow-x-auto">
+      <table class="w-full mb-3">
+        <thead><tr><th>Artikel</th><th>Anzahl</th></tr></thead>
+        <tbody>
+          {% for row in obj.einsatzeinsatzmittel_set.all %}
+            <tr><td>{{ row.einsatzmittel }}</td><td>{{ row.anzahl }}</td></tr>
+          {% empty %}
+            <tr><td colspan="2">-</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div><span class="font-medium">Einsatzmaßnahmen / verwendetes Material:</span></div>
+    <div class="whitespace-pre-wrap">{{ obj.einsatzmassnahmen|default:"-" }}</div>
+  </section>
+
+  <section class="rounded border p-3">
+    <h3 class="font-semibold text-slate-700 mb-2">Eingesetztes Personal</h3>
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead><tr><th>Mitglied</th><th>Gruppe</th><th>Fahrzeug/Funktion</th><th>AGT (Min)</th></tr></thead>
+        <tbody>
+          {% for row in obj.einsatzteilnahme_set.all %}
+            <tr>
+              <td>{{ row.mitglied }}{% if row.mitglied.agt %} <span class="badge badge-agt">AGT</span>{% endif %}</td>
+              <td>{{ row.mitglied.jugendfeuerwehr|yesno:"Jugendfeuerwehr,Aktive" }}</td>
+              <td>{{ row.fahrzeug_funktion|default:"-" }}</td>
+              <td>{{ row.agt_minuten|default_if_none:"-" }}</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="4">-</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="rounded border p-3">
+    <h3 class="font-semibold text-slate-700 mb-2">Statistik</h3>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+      <div><span class="font-medium">Dauer:</span> {{ obj.dauer_stunden }} h</div>
+      <div><span class="font-medium">Gesamtstunden:</span> {{ obj.gesamtstunden }}</div>
+      <div><span class="font-medium">Personal:</span> {{ obj.teilnehmer_anzahl }}</div>
+      <div><span class="font-medium">Hauptamtlich:</span> {{ obj.teilnehmer_hauptamtlich }}</div>
+      <div><span class="font-medium">Ehrenamtlich:</span> {{ obj.teilnehmer_ehrenamtlich }}</div>
+      <div><span class="font-medium">Kilometer gesamt:</span> {{ obj.summe_kilometer }}</div>
+      <div><span class="font-medium">Fahrzeugstunden:</span> {{ obj.summe_fahrzeugstunden }}</div>
+    </div>
+  </section>
+</div>

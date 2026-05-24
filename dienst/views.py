@@ -20,7 +20,11 @@ from django.http import HttpResponse
 from core.utils.files import safe_filename
 
 from core.models import Mitglied                     # neu
-from core.forms import TeilnahmeAlleMitgliederBaseFormSet, TeilnahmeAlleMitgliederForm
+from core.forms import (
+    TeilnahmeAlleMitgliederBaseFormSet,
+    TeilnahmeAlleMitgliederForm,
+    split_datetime_local_field,
+)
 from core.services.mail import send_mail_with_pdf_to_active
 
 from .services import assign_running_number, render_html_to_pdf_bytes
@@ -50,13 +54,14 @@ def _build_grouped_rows(forms, members):
 # ---------- Forms / Formsets ----------
 
 class DienstForm(forms.ModelForm):
+    start_dt = split_datetime_local_field()
+    ende_dt = split_datetime_local_field()
+
     class Meta:
         model = Dienst
         fields = ["titel", "start_dt", "ende_dt", "beschreibung"]
         widgets = {
             "titel": forms.TextInput(attrs={"class": "mt-1 w-full border rounded px-3 py-2"}),
-            "start_dt": forms.DateTimeInput(attrs={"type": "datetime-local", "class": "mt-1 w-full border rounded px-3 py-2"}),
-            "ende_dt": forms.DateTimeInput(attrs={"type": "datetime-local", "class": "mt-1 w-full border rounded px-3 py-2"}),
             "beschreibung": forms.Textarea(attrs={"class": "mt-1 w-full border rounded px-3 py-2", "rows": 4}),
         }
 
@@ -65,7 +70,7 @@ DienstFahrzeugFormSet = inlineformset_factory(
     model=DienstFahrzeug,
     fields=["fahrzeug", "kilometer", "stunden"],
     widgets={
-        "fahrzeug": Select(attrs=common),
+        "fahrzeug": Select(attrs={**common, "data-exclusive-select": "fahrzeug"}),
         "kilometer": NumberInput(attrs={**common, "min": 0}),
         "stunden": NumberInput(attrs={**common, "min": 0, "step": "0.01"}),
     },
@@ -78,7 +83,7 @@ DienstAbrollFormSet = inlineformset_factory(
     model=DienstAbrollbehaelter,
     fields=["abrollbehaelter", "erforderlich"],
     widgets={
-        "abrollbehaelter": Select(attrs=common),
+        "abrollbehaelter": Select(attrs={**common, "data-exclusive-select": "abrollbehaelter"}),
         "erforderlich": CheckboxInput(),
     },
     extra=0,
@@ -90,7 +95,7 @@ DienstAnhaengerFormSet = inlineformset_factory(
     model=DienstAnhaenger,
     fields=["anhaenger", "kilometer", "stunden"],
     widgets={
-        "anhaenger": Select(attrs=common),
+        "anhaenger": Select(attrs={**common, "data-exclusive-select": "anhaenger"}),
         "kilometer": NumberInput(attrs={**common, "min": 0}),
         "stunden": NumberInput(attrs={**common, "min": 0, "step": "0.01"}),
     },
@@ -212,7 +217,15 @@ def dienst_neu(request):
 
 @login_required
 def dienst_detail(request, pk: int):
-    obj = get_object_or_404(Dienst, pk=pk)
+    obj = get_object_or_404(
+        Dienst.objects.prefetch_related(
+            "dienstfahrzeug_set__fahrzeug",
+            "dienstanhaenger_set__anhaenger",
+            "dienstabrollbehaelter_set__abrollbehaelter",
+            "dienstteilnahme_set__mitglied",
+        ),
+        pk=pk,
+    )
     return render(request, "dienst/detail.html", {"obj": obj})
 
 @login_required

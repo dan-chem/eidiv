@@ -4,6 +4,39 @@ from django.forms import BaseFormSet
 
 from .models import Mitglied
 
+
+class CompatibleSplitDateTimeWidget(forms.SplitDateTimeWidget):
+    def value_from_datadict(self, data, files, name):
+        values = super().value_from_datadict(data, files, name)
+        if any(values):
+            return values
+
+        combined_value = data.get(name)
+        if combined_value and "T" in combined_value:
+            return combined_value.split("T", 1)
+        return values
+
+
+def split_datetime_local_field() -> forms.SplitDateTimeField:
+    return forms.SplitDateTimeField(
+        widget=CompatibleSplitDateTimeWidget(
+            date_format="%Y-%m-%d",
+            time_format="%H:%M",
+            date_attrs={
+                "type": "date",
+                "class": "mt-1 border rounded px-3 py-2 mr-2",
+            },
+            time_attrs={
+                "type": "time",
+                "class": "mt-1 border rounded px-3 py-2",
+                "step": "60",
+            },
+        ),
+        input_date_formats=["%Y-%m-%d"],
+        input_time_formats=["%H:%M", "%H:%M:%S"],
+    )
+
+
 class StyledAuthenticationForm(AuthenticationForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

@@ -5,34 +5,33 @@
   <meta charset="utf-8">
   <title>Einsatz {{ obj.nummer_formatiert }}</title>
   <link rel="stylesheet" href="{% if print_css_url %}{{ print_css_url }}{% else %}{% static 'css/print.css' %}{% endif %}">
-  <style>
-  :root{
-    --muted-100:#f1f5f9;
-    --muted-600:#475569;
-    --ok-50:#dcfce7;
-    --ok-700:#166534;
-  }
-  h2 { color: #0f172a; margin: 0 0 6px; }
-  h3 { color: #0f172a; margin: 8px 0 4px; }
-  table { width: 100%; border-collapse: collapse; }
-  thead tr { background: var(--muted-100); }
-  thead th { color: var(--muted-600); text-align: left; padding: 4px 6px; }
-  tbody td { padding: 4px 6px; vertical-align: top; }
-  .badge { display:inline-block; padding:2px 6px; font-size:10px; border-radius:4px; font-weight:600; }
-  .badge-agt { background: var(--ok-50); color: var(--ok-700); }
-</style>
 </head>
 <body>
-<header id="doc-header">
-  <h1>Einsatzbericht</h1>
-  <div class="small">
-    Nummer: <span class="mono">{{ obj.nummer_formatiert }}</span> |
-    Beginn: {{ obj.start_dt|date:"d.m.Y H:i" }} |
-    Ende: {{ obj.ende_dt|date:"d.m.Y H:i" }} |
-    Dauer: {{ obj.dauer_stunden }} h
+<header class="report-header">
+  <div class="report-heading">
+    <div class="report-mark">E</div>
+    <div>
+      <div class="eyebrow">EiDiV</div>
+      <h1>Einsatzbericht</h1>
+      <div class="subtitle">{{ obj.stichwort|default:"Einsatz" }}</div>
+    </div>
   </div>
-  <div>Einsatzleiter: {{ obj.einsatzleiter|default:obj.einsatzleiter_text }}</div>
+  <div class="document-number">
+    <span>Einsatznummer</span>
+    <strong class="mono">{{ obj.nummer_formatiert }}</strong>
+  </div>
 </header>
+
+<section class="summary">
+  <h2>Übersicht</h2>
+  <div class="grid-2">
+    <div><strong>Beginn:</strong> {{ obj.start_dt|date:"d.m.Y H:i" }}</div>
+    <div><strong>Ende:</strong> {{ obj.ende_dt|date:"d.m.Y H:i" }}</div>
+    <div><strong>Dauer:</strong> {{ obj.dauer_stunden }} h</div>
+    <div><strong>Einsatzleiter:</strong> {{ obj.einsatzleiter|default:obj.einsatzleiter_text }}</div>
+    <div><strong>Meldende Stelle:</strong> {{ obj.meldende_stelle|default:"—" }}</div>
+  </div>
+</section>
 
 <section>
   <h2>Einsatzort</h2>
@@ -198,7 +197,7 @@
   </table>
 </section>
 
-<section>
+<section class="stats">
   <h2>Statistik</h2>
   <div class="grid-3">
     <div><strong>Einsatzdauer (h):</strong> {{ obj.dauer_stunden }}</div>
@@ -212,8 +211,9 @@
 </section>
 
 
-<footer class="small">
-  Unterschrift, Datum
+<footer class="signature">
+  <div>Ort, Datum</div>
+  <div>Unterschrift Einsatzleitung</div>
 </footer>
 </body>
 </html>

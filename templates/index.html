@@ -82,17 +82,20 @@
         </div>
         <ul class="space-y-2">
           {% for e in recent_einsaetze %}
-          <li class="flex items-start justify-between gap-3 rounded border p-3 hover:bg-slate-50">
-            <div>
-              <div class="font-medium text-slate-800">{{ e.nummer_formatiert }}</div>
-              <div class="text-sm text-slate-600">
-                {% if e.stichwort %}{{ e.stichwort.bezeichnung }}{% else %}—{% endif %}
-                · {{ e.start_dt|date:"d.m.Y H:i" }}
+          <li class="rounded border p-3 hover:bg-slate-50">
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <div class="font-medium text-slate-800">Einsatz {{ e.nummer_formatiert }}</div>
+                <div class="text-sm text-slate-600">{{ e.stichwort|default:"-" }}</div>
+                <div class="text-sm text-slate-600">{{ e.start_dt|date:"d.m.Y H:i" }} - {{ e.ende_dt|date:"H:i" }} Uhr</div>
+                {% if e.einsatzgemeinde or e.objektname %}
+                  <div class="text-sm text-slate-500">{{ e.objektname }}{% if e.objektname and e.einsatzgemeinde %}, {% endif %}{{ e.einsatzgemeinde }}</div>
+                {% endif %}
               </div>
-            </div>
-            <div class="flex items-center gap-2">
-              <a href="{% url 'einsatz_detail' e.id %}" class="text-brand-700 hover:underline">Details</a>
-              <a href="{% url 'einsatz_pdf' e.id %}" class="text-slate-600 hover:underline">PDF</a>
+              <div class="flex items-center gap-2">
+                <a href="{% url 'einsatz_detail' e.id %}" class="text-brand-700 hover:underline">Details</a>
+                <a href="{% url 'einsatz_pdf' e.id %}" class="text-slate-600 hover:underline">PDF</a>
+              </div>
             </div>
           </li>
           {% empty %}
@@ -116,16 +119,18 @@
         </div>
         <ul class="space-y-2">
           {% for d in recent_dienste %}
-          <li class="flex items-start justify-between gap-3 rounded border p-3 hover:bg-slate-50">
-            <div>
-              <div class="font-medium text-slate-800">{{ d.nummer_formatiert }}</div>
-              <div class="text-sm text-slate-600">
-                {{ d.titel|default:"—" }} · {{ d.start_dt|date:"d.m.Y H:i" }}
+          <li class="rounded border p-3 hover:bg-slate-50">
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <div class="font-medium text-slate-800">Dienst {{ d.nummer_formatiert }}</div>
+                <div class="text-sm text-slate-600">{{ d.titel|default:"-" }}</div>
+                <div class="text-sm text-slate-600">{{ d.start_dt|date:"d.m.Y H:i" }} - {{ d.ende_dt|date:"H:i" }} Uhr</div>
+                <div class="text-sm text-slate-500">Dauer: {{ d.dauer_stunden }} h</div>
               </div>
-            </div>
-            <div class="flex items-center gap-2">
-              <a href="{% url 'dienst_detail' d.id %}" class="text-brand-700 hover:underline">Details</a>
-              <a href="{% url 'dienst_pdf' d.id %}" class="text-slate-600 hover:underline">PDF</a>
+              <div class="flex items-center gap-2">
+                <a href="{% url 'dienst_detail' d.id %}" class="text-brand-700 hover:underline">Details</a>
+                <a href="{% url 'dienst_pdf' d.id %}" class="text-slate-600 hover:underline">PDF</a>
+              </div>
             </div>
           </li>
           {% empty %}

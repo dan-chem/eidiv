@@ -178,7 +178,24 @@ def einsatz_neu(request):
 
 @login_required
 def einsatz_detail(request, pk: int):
-    obj = get_object_or_404(Einsatz, pk=pk)
+    obj = get_object_or_404(
+        Einsatz.objects.select_related(
+            "stichwort", "einsatzleiter", "meldende_stelle", "person",
+            "brandumfang", "brandausbreitung", "brandgut", "brandobjekt",
+            "schadensereignis", "personenrettung_typ", "sicherheitswache",
+            "fehlalarm", "sonstige",
+        ).prefetch_related(
+            "loeschwasser__entnahmestelle",
+            "einsatzfahrzeug_set__fahrzeug",
+            "einsatzanhaenger_set__anhaenger",
+            "einsatzabrollbehaelter_set__abrollbehaelter",
+            "einsatzortsfeuerwehr_set__ortsfeuerwehr",
+            "einsatzzusatzstelle_set__zusatzstelle",
+            "einsatzeinsatzmittel_set__einsatzmittel",
+            "einsatzteilnahme_set__mitglied",
+        ),
+        pk=pk,
+    )
     return render(request, "einsatz/detail.html", {"obj": obj})
 
 @login_required

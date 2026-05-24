@@ -3,7 +3,7 @@
 {% block content %}
 <h1 class="text-xl font-semibold mb-4">Dienst erfassen</h1>
 
-<form method="post" class="space-y-8">
+<form method="post" class="space-y-8" data-disable-on-submit>
   {% csrf_token %}
 
   <!-- Allgemein -->
@@ -234,7 +234,13 @@
 </section>
 
   <div>
-    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">Speichern</button>
+    <button type="submit" data-saving-button class="px-4 py-2 bg-blue-600 text-white rounded inline-flex items-center gap-2">
+      <span data-label-default>Speichern</span>
+      <span data-label-saving class="hidden inline-flex items-center gap-2">
+        <span class="inline-block h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin" aria-hidden="true"></span>
+        Wird gespeichert ...
+      </span>
+    </button>
   </div>
 </form>
 

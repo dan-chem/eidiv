@@ -111,6 +111,10 @@
   .btn-primary { background: var(--brand-600); color:#fff; }
   .btn-primary:hover { background: var(--brand-700); }
   .btn-ghost { color: var(--brand-700); }
+  .btn-saving:disabled {
+    background: #94a3b8;
+    cursor: wait;
+  }
 
   /* Deutlichere Disabled-Optik global (dezent) */
 input:disabled, select:disabled, textarea:disabled {
@@ -172,6 +176,7 @@ td.agt-off input {
       if (!prefix) return;
       const total = document.querySelector(`input[name="${prefix}-TOTAL_FORMS"]`);
       if (total) total.value = String(parseInt(total.value || "0") + 1);
+      updateExclusiveSelectOptions();
     });
   </script>
   <!-- Entfernen / Löschen einer hinzugefügten Zeile: markiert vorhandene Löschbox oder fügt ein verstecktes DELETE-Feld hinzu und versteckt die Zeile -->
@@ -194,6 +199,7 @@ td.agt-off input {
         if (del.type === 'checkbox') del.checked = true;
         else del.value = 'on';
         row.style.display = 'none';
+        updateExclusiveSelectOptions();
         return;
       }
       // Für neue, noch nicht gespeicherte Formulare: fügen wir ein verstecktes DELETE-Feld hinzu (Wert 'on')
@@ -203,6 +209,68 @@ td.agt-off input {
       del.value = 'on';
       row.appendChild(del);
       row.style.display = 'none';
+      updateExclusiveSelectOptions();
+    });
+  </script>
+  <script>
+    function updateExclusiveSelectOptions() {
+      const selects = document.querySelectorAll('select[data-exclusive-select]');
+      const groups = {};
+      selects.forEach(function (select) {
+        const row = select.closest('tr');
+        if (row && row.style.display === 'none') return;
+        const group = select.dataset.exclusiveSelect;
+        groups[group] = groups[group] || [];
+        groups[group].push(select);
+      });
+      Object.values(groups).forEach(function (groupSelects) {
+        const selectedValues = new Set(
+          groupSelects.map(function (select) { return select.value; }).filter(Boolean)
+        );
+        groupSelects.forEach(function (select) {
+          Array.from(select.options).forEach(function (option) {
+            const selectedElsewhere = option.value && option.value !== select.value && selectedValues.has(option.value);
+            option.hidden = Boolean(selectedElsewhere);
+            option.disabled = Boolean(selectedElsewhere);
+          });
+        });
+      });
+    }
+    document.addEventListener('change', function (event) {
+      if (event.target.matches('select[data-exclusive-select]')) {
+        updateExclusiveSelectOptions();
+      }
+    });
+    document.body.addEventListener('htmx:afterSwap', updateExclusiveSelectOptions);
+    updateExclusiveSelectOptions();
+  </script>
+  <script>
+    const guardedForms = document.querySelectorAll('form[data-disable-on-submit]');
+    guardedForms.forEach(function (form) {
+      form.addEventListener('submit', function (event) {
+        if (form.dataset.submitting === 'true') {
+          event.preventDefault();
+          return;
+        }
+        form.dataset.submitting = 'true';
+        const button = form.querySelector('button[type="submit"][data-saving-button]');
+        if (!button) return;
+        button.disabled = true;
+        button.classList.add('btn-saving');
+        button.querySelector('[data-label-default]')?.classList.add('hidden');
+        button.querySelector('[data-label-saving]')?.classList.remove('hidden');
+      });
+    });
+    window.addEventListener('pageshow', function () {
+      guardedForms.forEach(function (form) {
+        form.dataset.submitting = 'false';
+        const button = form.querySelector('button[type="submit"][data-saving-button]');
+        if (!button) return;
+        button.disabled = false;
+        button.classList.remove('btn-saving');
+        button.querySelector('[data-label-default]')?.classList.remove('hidden');
+        button.querySelector('[data-label-saving]')?.classList.add('hidden');
+      });
     });
   </script>
 </body>
