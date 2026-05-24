@@ -157,6 +157,9 @@
   </div>
 
   {{ tn_formset.management_form|default_if_none:"" }}
+  {% if tn_formset.non_form_errors %}
+    <div class="text-red-600 text-sm mb-3">{{ tn_formset.non_form_errors }}</div>
+  {% endif %}
 
   <h3 class="font-medium mb-1">Aktive</h3>
   <table class="w-full text-sm mb-4">

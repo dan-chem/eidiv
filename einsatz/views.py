@@ -9,10 +9,10 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 from django.contrib.auth.decorators import login_required
 from django.forms import formset_factory
-from django.conf import settings
 from django.templatetags.static import static
+from django.utils.html import format_html_join
 
-from core.forms import TeilnahmeAlleMitgliederForm
+from core.forms import TeilnahmeAlleMitgliederBaseFormSet, TeilnahmeAlleMitgliederForm
 from core.models import Mitglied, Einsatzstichwort
 from core.services.mail import send_mail_with_pdf_to_active
 from core.utils.files import safe_filename
@@ -39,7 +39,11 @@ def _build_grouped_rows(forms, members):
 
 @login_required
 def einsatz_neu(request):
-    TeilnahmeFS = formset_factory(TeilnahmeAlleMitgliederForm, extra=0)
+    TeilnahmeFS = formset_factory(
+        TeilnahmeAlleMitgliederForm,
+        formset=TeilnahmeAlleMitgliederBaseFormSet,
+        extra=0,
+    )
 
     if request.method == "POST":
         e = Einsatz()
@@ -229,11 +233,13 @@ def stichwort_options(request):
     qs = Einsatzstichwort.objects.filter(aktiv=True)
     if kat:
         qs = qs.filter(kategorie=kat)
-    # Reine Options-Liste zurückgeben
-    html = ['<option value="">— bitte wählen —</option>']
-    for sw in qs.order_by("bezeichnung"):
-        html.append(f'<option value="{sw.pk}">{sw}</option>')
-    return HttpResponse("\n".join(html), content_type="text/html")
+    html = '<option value="">— bitte wählen —</option>\n'
+    html += str(format_html_join(
+        "\n",
+        '<option value="{}">{}</option>',
+        ((sw.pk, sw) for sw in qs.order_by("bezeichnung")),
+    ))
+    return HttpResponse(html, content_type="text/html")
 
 
 # HTMX-Add: liefert eine zusätzliche Zeile je Formset

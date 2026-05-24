@@ -56,6 +56,7 @@ def index(request):
         "d_year": d_year,
     })
 
+@login_required
 def api_mitglied_agt(request, pk: int):
     """
     Liefert {"agt": true/false} für das Mitglied mit PK.

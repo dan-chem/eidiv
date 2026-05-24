@@ -20,7 +20,7 @@ from django.http import HttpResponse
 from core.utils.files import safe_filename
 
 from core.models import Mitglied                     # neu
-from core.forms import TeilnahmeAlleMitgliederForm   # neu
+from core.forms import TeilnahmeAlleMitgliederBaseFormSet, TeilnahmeAlleMitgliederForm
 from core.services.mail import send_mail_with_pdf_to_active
 
 from .services import assign_running_number, render_html_to_pdf_bytes
@@ -105,7 +105,11 @@ DienstAnhaengerFormSet = inlineformset_factory(
 
 @login_required
 def dienst_neu(request):
-    TeilnahmeFS = formset_factory(TeilnahmeAlleMitgliederForm, extra=0)
+    TeilnahmeFS = formset_factory(
+        TeilnahmeAlleMitgliederForm,
+        formset=TeilnahmeAlleMitgliederBaseFormSet,
+        extra=0,
+    )
 
     if request.method == "POST":
         d = Dienst()
